@@ -1,0 +1,142 @@
+import pygame, math
+from enum import Enum
+from rootobjects import *
+from constants import *
+from playerunits import *
+
+class ValidMovements(Enum):
+    FollowEnemy = "following enemy"
+    FollowAlly = "following ally/squad"
+    MoveToCursor = "moving to destination"
+    StandStill = "standing still"
+
+class EnemyUnit(RootObject): #will have to branch off for extra enemy types
+    def __init__(self, x, y):
+        super().__init__(x, y, ENEMY_RADIUS)
+        self.maxhealth = ENEMY_MAX_HEALTH
+        self.health = self.maxhealth
+        self.rotation = 0
+        self.movespeed = ENEMY_MOVE_SPEED
+        self.turnspeed = ENEMY_TURN_SPEED
+        self.timer = 0
+        self.current_movement = ValidMovements.StandStill
+        self.destination = None
+        self.color = "red"
+        self.sight_range = ENEMY_DETECTION_RANGE
+        self.current_target = None
+        self.name = "debug enemy"
+
+    def draw(self, screen):
+        return pygame.draw.polygon(screen, self.color, self.triangle())
+
+    def update(self, dt, target_group, bullet_group):
+        self.timer -= dt
+        if self.current_target == None:
+            self.Find_Target(target_group)  
+        if self.current_movement != ValidMovements.StandStill:
+            self.Move_Closer(dt)
+        for bullet in bullet_group:
+            self.check_bullet(bullet, dt)
+        if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
+            self.color = "red"
+
+    def check_bullet(self, bullet, dt):
+        if self.collision(bullet):
+            bullet.kill()
+            self.color = "white"
+            self.take_damage(bullet.damage)
+        
+
+    def take_damage(self, damage):
+        if self.timer <= 0:
+            print(f"took {damage} damage")
+            self.health -= damage
+            self.timer = HIT_COOLDOWN
+            if self.health <= 0:
+                self.kill()
+
+
+    def Find_Target(self, group):
+        target_range = RootObject(self.position.x, self.position.y, self.sight_range)
+        valid_targets = pygame.sprite.spritecollide(target_range, group, False)
+        if len(valid_targets) > 0:
+            c_x = self.position.x + self.sight_range
+            c_y = self.position.y + self.sight_range
+            c_vector = pygame.Vector2(c_x, c_y)
+            c_distance = float('inf')
+            c_target = None
+            for target in valid_targets:
+                #print(f"target found: {target.name}")
+                target_dist = pygame.Vector2(target.position.x, target.position.y)
+                if pygame.math.Vector2.distance_to(target_dist, c_vector) < c_distance:
+                    c_target = target
+                    c_x = target.position.x
+                    c_y = target.position.y
+                    c_vector = pygame.Vector2(c_x, c_y)
+                    #print(f"set target {target.name} as target")
+            self.destination = c_target
+            self.current_movement = ValidMovements.FollowEnemy
+        else:
+            self.current_target = None
+            self.current_movement = ValidMovements.FollowAlly
+        
+    def Move_Closer(self, dt):
+        if self.destination != None:
+            angle = math.atan2(self.position.y - self.destination.position.y, self.position.x - self.destination.position.x)
+            degrees = math.degrees(angle)+90
+            #print(f"target angle: {degrees}, current rotation: {self.rotation}")
+            while degrees > 360:
+                degrees -= 360
+            while degrees < 0:
+                degrees += 360
+            if self.rotation > degrees:
+                self.rotate(dt*-1)
+            elif self.rotation < degrees:
+                self.rotate(dt)
+            if self.collision(self.destination) == False:
+                self.move(dt)
+
+    def Fire_At_Will(self):
+        # pull the target up, start blasting
+        pass #later!!
+
+class EnemySpawner(RootObject):
+    def __init__(self, x, y):
+        super().__init__(x, y, ENEMY_RADIUS*3)
+        self.maxhealth = ENEMY_MAX_HEALTH*10
+        self.health = self.maxhealth
+        self.rotation = 0
+        self.movespeed = ENEMY_MOVE_SPEED//2
+        self.turnspeed = ENEMY_TURN_SPEED//2
+        self.timer = 0
+        self.current_movement = ValidMovements.StandStill
+        self.destination = None
+        self.color = "red"
+        self.sight_range = ENEMY_DETECTION_RANGE//2
+        self.current_target = None
+        self.name = "enemy spawner"
+    
+    def draw(self, screen):
+        return pygame.draw.polygon(screen, self.color, self.triangle())
+    
+    def update(self, dt, target_group, bullet_group):
+        self.timer -= dt
+        for bullet in bullet_group:
+            self.check_bullet(bullet, dt)
+        if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
+            self.color = "red"
+
+    def check_bullet(self, bullet, dt):
+        if self.collision(bullet):
+            bullet.kill()
+            self.color = "white"
+            self.take_damage(bullet.damage)
+        
+
+    def take_damage(self, damage):
+        if self.timer <= 0:
+            print(f"took {damage} damage")
+            self.health -= damage
+            self.timer = HIT_COOLDOWN
+            if self.health <= 0:
+                self.kill()
