@@ -7,7 +7,10 @@ from enemies import EnemyUnit
 class ValidMovements(Enum):
     FollowEnemy = "following enemy"
     FollowAlly = "following ally/squad"
+    AvoidHostile = "avoiding hostiles"
+    AvoidObject = "moving around object"
     MoveToCursor = "moving to destination"
+    
     StandStill = "standing still"
 
 class PlayerRobot(RootObject):
