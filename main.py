@@ -37,8 +37,9 @@ def battle_mode(screen):
 
 
     Player = PlayerRobot(250, 300, "john character")
-    Enemy = EnemyUnit(750, 400)
+    
     Spawner = EnemySpawner(700, 500)
+    Spawner2 = EnemySpawner(900, 200)
 
     action_waiting = False
     kbd_waiting = False

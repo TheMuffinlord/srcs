@@ -1,4 +1,4 @@
-import pygame, math
+import pygame, math, random
 from enum import Enum
 from rootobjects import *
 from constants import *
@@ -9,6 +9,10 @@ class ValidMovements(Enum):
     FollowAlly = "following ally/squad"
     MoveToCursor = "moving to destination"
     StandStill = "standing still"
+
+class EnemyTypes(Enum):
+    EnemyUnit = "basic enemy"
+    EnemySpawner = "enemy spawner"
 
 class EnemyUnit(RootObject): #will have to branch off for extra enemy types
     def __init__(self, x, y):
@@ -26,6 +30,8 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         self.current_target = None
         self.name = "debug enemy"
         self.spawner = None
+        self.valid_targets = None
+        self.type = EnemyTypes.EnemyUnit
 
     def draw(self, screen):
         return pygame.draw.polygon(screen, self.color, self.triangle())
@@ -55,7 +61,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             self.timer = HIT_COOLDOWN
             if self.health <= 0:
                 self.kill()
-                if self.spawner != None:
+                if self.spawner != None and self.spawner.alive():
                     self.spawner.health += ENEMY_MAX_HEALTH // 2
                     self.spawner.color = "green"
 
@@ -100,6 +106,33 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
                 self.rotate(dt)
             if self.collision(self.destination) == False:
                 self.move(dt)
+            else:
+                #eventually damage will go here but for now i want them to kinda wander a bit
+                self.destination = None
+        else:
+            self.Wander_Around(dt)
+
+    def Wander_Around(self, dt):
+        if self.timer < 0:
+            r_x = random.randrange(0, SCREEN_WIDTH)
+            r_y = random.randrange(0, SCREEN_HEIGHT)
+            angle = math.atan2(self.position.y - r_y, self.position.x - r_x)
+            degrees = math.degrees(angle)+90
+            while degrees > 360:
+                degrees -= 360
+            while degrees < 0:
+                degrees += 360
+            if self.rotation > degrees:
+                self.rotate((dt*-1)/4)
+            elif self.rotation < degrees:
+                self.rotate(dt/4)
+                self.timer = random.random()
+        if self.timer > 0:
+            self.timer -= dt*2
+            self.move(dt/4)
+                
+
+
 
     def Fire_At_Will(self):
         # pull the target up, start blasting
@@ -121,7 +154,8 @@ class EnemySpawner(RootObject):
         self.sight_range = ENEMY_DETECTION_RANGE//2
         self.current_target = None
         self.name = "enemy spawner"
-        self.spawned_enemies = pygame.sprite.Group()
+        self.type = EnemyTypes.EnemySpawner
+        
     
     def draw(self, screen):
         return pygame.draw.polygon(screen, self.color, self.triangle())
@@ -134,7 +168,7 @@ class EnemySpawner(RootObject):
         if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
             self.color = "red"
         if self.health > ENEMY_MAX_HEALTH:            
-            self.enemy_spawn()
+            self.enemy_spawn(target_group)
 
     def check_bullet(self, bullet, dt):
         if self.collision(bullet):
@@ -150,10 +184,11 @@ class EnemySpawner(RootObject):
             if self.health <= 0:
                 self.kill()
     
-    def enemy_spawn(self):
+    def enemy_spawn(self, target_group):
         if self.spawn_timer < 0:
             self.health -= ENEMY_MAX_HEALTH
             new_enemy = EnemyUnit(self.position.x, self.position.y)
             new_enemy.spawner = self
             new_enemy.rotation = random.randrange(0,360)
+            new_enemy.valid_targets = target_group
             self.spawn_timer = SPAWN_COOLDOWN
