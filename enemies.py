@@ -25,6 +25,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         self.sight_range = ENEMY_DETECTION_RANGE
         self.current_target = None
         self.name = "debug enemy"
+        self.spawner = None
 
     def draw(self, screen):
         return pygame.draw.polygon(screen, self.color, self.triangle())
@@ -54,6 +55,10 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             self.timer = HIT_COOLDOWN
             if self.health <= 0:
                 self.kill()
+                if self.spawner != None:
+                    self.spawner.health += ENEMY_MAX_HEALTH // 2
+                    self.spawner.color = "green"
+
 
 
     def Find_Target(self, group):
@@ -109,22 +114,27 @@ class EnemySpawner(RootObject):
         self.movespeed = ENEMY_MOVE_SPEED//2
         self.turnspeed = ENEMY_TURN_SPEED//2
         self.timer = 0
+        self.spawn_timer = SPAWN_COOLDOWN
         self.current_movement = ValidMovements.StandStill
         self.destination = None
         self.color = "red"
         self.sight_range = ENEMY_DETECTION_RANGE//2
         self.current_target = None
         self.name = "enemy spawner"
+        self.spawned_enemies = pygame.sprite.Group()
     
     def draw(self, screen):
         return pygame.draw.polygon(screen, self.color, self.triangle())
     
     def update(self, dt, target_group, bullet_group):
         self.timer -= dt
+        self.spawn_timer -= dt
         for bullet in bullet_group:
             self.check_bullet(bullet, dt)
         if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
             self.color = "red"
+        if self.health > ENEMY_MAX_HEALTH:            
+            self.enemy_spawn()
 
     def check_bullet(self, bullet, dt):
         if self.collision(bullet):
@@ -132,7 +142,6 @@ class EnemySpawner(RootObject):
             self.color = "white"
             self.take_damage(bullet.damage)
         
-
     def take_damage(self, damage):
         if self.timer <= 0:
             print(f"took {damage} damage")
@@ -140,3 +149,11 @@ class EnemySpawner(RootObject):
             self.timer = HIT_COOLDOWN
             if self.health <= 0:
                 self.kill()
+    
+    def enemy_spawn(self):
+        if self.spawn_timer < 0:
+            self.health -= ENEMY_MAX_HEALTH
+            new_enemy = EnemyUnit(self.position.x, self.position.y)
+            new_enemy.spawner = self
+            new_enemy.rotation = random.randrange(0,360)
+            self.spawn_timer = SPAWN_COOLDOWN
