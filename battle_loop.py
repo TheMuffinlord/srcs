@@ -508,7 +508,7 @@ class EnemySpawner(RootObject):
         
     def take_damage(self, damage):
         if self.timer <= 0:
-            print(f"took {damage} damage")
+            #print(f"took {damage} damage")
             self.health -= damage
             self.timer = HIT_COOLDOWN
             if self.health <= 0:
