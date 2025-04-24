@@ -29,8 +29,9 @@ def toggle_selection(unit):
 def mouse_interpreter(clicked_position, clicked_button):
     global SelectionGroup
     if clicked_button[0] or clicked_button[1]:
+        go_here = SelectionCursor(clicked_position[0], clicked_position[1])
         for unit in SelectionGroup:
-            unit.destination = RootObject(clicked_position[0], clicked_position[1], 30)
+            unit.destination = go_here
             print(f"setting {unit.name} destination to {unit.destination.position}")
             toggle_selection(unit)        
 
@@ -99,8 +100,32 @@ class RootObject(pygame.sprite.WeakSprite):
         while degrees > 180:
             degrees -= 360
         return degrees
-    
 
+class SelectionCursor(RootObject):
+    def __init__(self, x, y):
+        super().__init__(x, y, SELECTION_RADIUS)
+        self.color = pygame.color.Color(0,255,0)
+        global SelectionGroup
+        self.selected_units = SelectionGroup.copy()
+        self.in_use = True
+        
+    
+    def draw(self, screen):
+        return pygame.draw.circle(screen, self.color, self.position, self.radius, 3)
+
+    def update(self, *args):
+        if self.color.g > 0:
+            self.color.g -= 5
+        if self.color.g <= 0:
+            if self.color.r < 250:
+                self.color.r += 5
+            self.in_use = False
+        for unit in self.selected_units:
+            if unit.destination == self:
+                self.in_use = True
+        if self.in_use == False:
+            self.kill()
+        
 class ValidMovements(Enum):
     FollowEnemy = "following enemy"
     FollowAlly = "following ally/squad"
@@ -205,6 +230,7 @@ class PlayerRobot(RootObject):
         #print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
        
     def Move_Closer(self, dt):
+        global PlayerGroup, EnemyGroup #gotta think about this one
         if self.destination != None:
             #print("moving to destination")
             degrees = self.find_angle(self.destination)
@@ -214,6 +240,8 @@ class PlayerRobot(RootObject):
                 self.rotate(dt)
             if self.collision(self.destination) == False:
                 self.move(dt)
+            else:
+                self.destination = None
         
     def Fire_At_Will(self, dt):
         if self.current_target != None:
@@ -224,7 +252,6 @@ class PlayerRobot(RootObject):
             b_y = self.position.y + forward.y * self.radius
             self.equipment[1].Start_Shooting(dt, forward, b_x, b_y)
             
-
     def Something_Broke(self):
         intact_gear = []
         broken = False
@@ -241,7 +268,6 @@ class PlayerRobot(RootObject):
                 broken = self.equipment[break_roll].Get_Broken()
             print(f"{self.equipment[break_roll]} broke")
             self.health = self.maxhealth
-
 
     def Unit_Destroyed(self):
         print(f"unit {self.name} destroyed, please code this")
@@ -520,7 +546,7 @@ def battle_mode(screen):
     EnemyUnit.containers = (loop_updatable, loop_drawable, EnemyGroup)
     BasicBullet.containers = (loop_updatable, loop_drawable, BulletGroup)
     EnemySpawner.containers = (loop_updatable, loop_drawable, EnemyGroup)
-
+    SelectionCursor.containers = (loop_updatable, loop_drawable)
 
     Player = PlayerRobot(250, 300, "john character", 1)
     Player2 = PlayerRobot(100, 650, "jane character", 2)
