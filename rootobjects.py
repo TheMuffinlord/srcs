@@ -46,6 +46,11 @@ class RootObject(pygame.sprite.WeakSprite):
         else:
             return False
         
+    def collision_rough(self, object):
+        if object.position.distance_to(self.position) <= (self.radius + (object.radius * 1.1)):
+            return True
+        return False
+        
     def move(self, dt):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         self.position += forward * self.movespeed * dt

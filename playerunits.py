@@ -64,13 +64,15 @@ class PlayerRobot(RootObject):
         self.shot_diff = self.equipment[1].shot_diff
 
     def take_damage(self, damage):
+        #print(self.timer)
         if self.timer <= 0:
             print(f"{self.name} took {damage} damage")
             self.health -= damage
             print(f"{self.name} health: {self.health}")
             self.timer = HIT_COOLDOWN
-        else:
-            print(f"too soon for {self.name} to take damage")
+            #print(f"time to next hit: {self.timer}")
+        #else:
+            #print(f"too soon for {self.name} to take damage")
         if self.health <= 0:
                 print("something broke")
                 self.Something_Broke()
@@ -82,7 +84,7 @@ class PlayerRobot(RootObject):
         for unit in target_group:
             if target_range.collision(unit):
                 valid_targets.append(unit)
-    
+
         #print(f"{len(valid_targets)} valid targets")
         if len(valid_targets) > 0:
             
