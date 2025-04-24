@@ -33,8 +33,12 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         self.spawner = None
         self.valid_targets = None
         self.type = EnemyTypes.EnemyUnit
+        self.damage_value = ENEMY_DAMAGE_VALUE
+        self.can_damage = True
 
     def draw(self, screen):
+        if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
+            self.color = "red"
         return pygame.draw.polygon(screen, self.color, self.triangle())
 
     def update(self, dt, target_group, bullet_group):
@@ -45,8 +49,9 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             self.Move_Closer(dt)
         for bullet in bullet_group:
             self.check_bullet(bullet, dt)
-        if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
-            self.color = "red"
+        if self.destination and self.collision(self.destination) == True and self.destination.can_damage == True:
+            self.destination.take_damage(self.damage_value)
+        
 
     def check_bullet(self, bullet, dt):
         if self.collision(bullet):
@@ -57,7 +62,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
 
     def take_damage(self, damage):
         if self.timer <= 0:
-            print(f"took {damage} damage")
+            #print(f"took {damage} damage")
             self.health -= damage
             self.timer = HIT_COOLDOWN
             if self.health <= 0:
@@ -94,19 +99,14 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         
     def Move_Closer(self, dt):
         if self.destination != None:
-            angle = math.atan2(self.position.y - self.destination.position.y, self.position.x - self.destination.position.x)
-            degrees = math.degrees(angle)+90
-            #print(f"target angle: {degrees}, current rotation: {self.rotation}")
-            while degrees > 360:
-                degrees -= 360
-            while degrees < 0:
-                degrees += 360
+            degrees = self.find_angle(self.destination)
             if self.rotation > degrees:
                 self.rotate(dt*-1)
             elif self.rotation < degrees:
                 self.rotate(dt)
             if self.collision(self.destination) == False:
                 self.move(dt)
+                
             else:
                 #eventually damage will go here but for now i want them to kinda wander a bit
                 self.destination = None
@@ -142,7 +142,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
 class EnemySpawner(RootObject):
     def __init__(self, x, y):
         super().__init__(x, y, ENEMY_RADIUS*3)
-        self.maxhealth = ENEMY_MAX_HEALTH*10
+        self.maxhealth = ENEMY_MAX_HEALTH*25
         self.health = self.maxhealth
         self.rotation = 0
         self.movespeed = ENEMY_MOVE_SPEED//2

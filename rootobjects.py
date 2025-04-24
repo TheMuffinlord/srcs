@@ -1,4 +1,4 @@
-import pygame
+import pygame, math, random
 
 class RootObject(pygame.sprite.WeakSprite):
     def __init__(self, x, y, radius):
@@ -15,7 +15,7 @@ class RootObject(pygame.sprite.WeakSprite):
         self.turnspeed = 0
         self.movespeed = 0
         self.name = "root object"
-    
+        self.can_damage = False
         self.rect = pygame.rect.Rect(x - (radius/2), y - (radius/2), radius, radius)
 
     def __repr__(self):
@@ -41,7 +41,7 @@ class RootObject(pygame.sprite.WeakSprite):
         pass
 
     def collision(self, object):
-        if object.position.distance_to(self.position) < (self.radius + object.radius):
+        if object.position.distance_to(self.position) <= (self.radius + object.radius):
             return True
         else:
             return False
@@ -50,4 +50,12 @@ class RootObject(pygame.sprite.WeakSprite):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         self.position += forward * self.movespeed * dt
 
+    def find_angle(self, target):
+        angle = math.atan2(self.position.y -target.position.y, self.position.x - target.position.x)
+        degrees = math.degrees(angle)+90
+        while degrees < 180:
+            degrees += 360
+        while degrees > 180:
+            degrees -= 360
+        return degrees
     
