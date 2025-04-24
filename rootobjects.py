@@ -1,6 +1,6 @@
 import pygame
 
-class RootObject(pygame.sprite.Sprite):
+class RootObject(pygame.sprite.WeakSprite):
     def __init__(self, x, y, radius):
         if hasattr(self, "containers"):
             super().__init__(self.containers)
@@ -14,6 +14,7 @@ class RootObject(pygame.sprite.Sprite):
         self.timer = 0
         self.turnspeed = 0
         self.movespeed = 0
+        self.name = "root object"
     
         self.rect = pygame.rect.Rect(x - (radius/2), y - (radius/2), radius, radius)
 

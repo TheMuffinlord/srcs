@@ -4,6 +4,7 @@ from rootobjects import *
 from constants import *
 from playerunits import *
 
+
 class ValidMovements(Enum):
     FollowEnemy = "following enemy"
     FollowAlly = "following ally/squad"
@@ -188,6 +189,7 @@ class EnemySpawner(RootObject):
         if self.spawn_timer < 0:
             self.health -= ENEMY_MAX_HEALTH
             new_enemy = EnemyUnit(self.position.x, self.position.y)
+            new_enemy.add(self.groups())
             new_enemy.spawner = self
             new_enemy.rotation = random.randrange(0,360)
             new_enemy.valid_targets = target_group

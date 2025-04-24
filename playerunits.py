@@ -14,13 +14,14 @@ class ValidMovements(Enum):
     StandStill = "standing still"
 
 class PlayerRobot(RootObject):
-    def __init__(self, x, y, name): #other attributes to be set later
+    def __init__(self, x, y, name, unit_number): #other attributes to be set later
         super().__init__(x, y, PLAYER_RADIUS)
 
         self.maxhealth = PLAYER_HEALTH
         self.health = self.maxhealth
         self.movespeed = PLAYER_MOVESPEED
         self.turnspeed = PLAYER_TURN_SPEED
+        self.rotation_speed = PLAYER_TURN_SPEED * 2
         self.rotation = 0
         self.aim_rotation = 0
         self.timer = 0
@@ -29,38 +30,36 @@ class PlayerRobot(RootObject):
         self.destination = None
         self.current_target = None
         self.name = name
+        self.unit_number = unit_number
         self.sight_range = int(BASIC_BULLET_VELOCITY * BASIC_BULLET_LIFESPAN)
+        self.selected = False
         
     def __repr__(self):
         return f"PlayerRobot({self.name}, {self.health}/{self.maxhealth})"
 
-    def aim_rotate(self, dt):
-        angle = math.atan2(self.position.y - self.current_target.position.y, self.position.x - self.current_target.position.x)
-        degrees = math.degrees(angle)+90
-        if degrees < self.aim_rotation:
-            self.aim_rotation += self.turnspeed * (-1 * dt)
-        elif degrees > self.aim_rotation:
-            self.aim_rotation += self.turnspeed * dt
-        #print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
-    
     def draw(self, screen):
+        if self.selected:
+            self.color = "orange"
+        else:
+            self.color = "white"
         return pygame.draw.polygon(screen, self.color, self.triangle())
 
     def update(self, dt, target_group):
         self.Find_Target(target_group)
-        if self.current_target != None:
-            self.Fire_At_Will(dt)
-        if self.current_movement != ValidMovements.StandStill:
-            self.Move_Closer(dt)
+        self.Fire_At_Will(dt)
+        self.Move_Closer(dt)
 
-    def Find_Target(self, group):
-        print(f"searching for enemies in {self.sight_range} radius")
-        target_range = pygame.sprite.GroupSingle(RootObject(self.position.x, self.position.y, self.sight_range))
-
-        valid_targets = pygame.sprite.groupcollide(group, target_range, False, False, pygame.sprite.collide_circle)
-        
+    def Find_Target(self, target_group):
+        #print(f"searching for enemies in {self.sight_range} radius")
+        target_range = RootObject(self.position.x, self.position.y, self.sight_range)
+        valid_targets = []
+        for unit in target_group:
+            if target_range.collision(unit):
+                valid_targets.append(unit)
+    
+        #print(f"{len(valid_targets)} valid targets")
         if len(valid_targets) > 0:
-            print(f"{len(valid_targets)} valid targets")
+            
             c_x = self.position.x + self.sight_range
             c_y = self.position.y + self.sight_range
             c_vector = pygame.Vector2(c_x, c_y)
@@ -74,22 +73,39 @@ class PlayerRobot(RootObject):
                     c_x = target.position.x
                     c_y = target.position.y
                     c_vector = pygame.Vector2(c_x, c_y)
-                    print(f"set target {target.name} as target")
+                    #print(f"set target {target.name} as target")
             self.current_target = c_target
             #print(f"current target is {self.current_target.name}")
-        elif len(valid_targets) == 0:
-            
+        if len(valid_targets) == 0:
+            #print(target_group)
             self.current_target = None
 
-        
+    def aim_rotate(self, dt):
+        angle = math.atan2(self.position.y - self.current_target.position.y, self.position.x - self.current_target.position.x)
+        degrees = math.degrees(angle)+90
+        while degrees < 180:
+            degrees += 360
+        while degrees > 180:
+            degrees -= 360
+        if degrees < self.aim_rotation:
+            self.aim_rotation += self.rotation_speed * (-1 * dt)
+        elif degrees > self.aim_rotation:
+            self.aim_rotation += self.rotation_speed * dt
+        #print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
+       
     def Move_Closer(self, dt):
         if self.destination != None:
+            #print("moving to destination")
             angle = math.atan2(self.position.y - self.destination.position.y, self.position.x - self.destination.position.x)
             degrees = math.degrees(angle)+90
-            if self.rotation > degrees:
-                self.rotate(dt)
-            elif self.rotation < degrees:
+            while degrees < 180:
+                degrees += 360
+            while degrees > 180:
+                degrees -= 360
+            if degrees < self.rotation:
                 self.rotate(dt * -1)
+            elif degrees > self.rotation:
+                self.rotate(dt)
             if self.collision(self.destination) == False:
                 self.move(dt)
         
