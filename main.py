@@ -12,7 +12,7 @@ def kbd_interpreter(pressed_key, selected_units, unit_group):
             toggle_unit = 2
     for unit in unit_group:
         if unit.unit_number == toggle_unit:
-            selected_units = toggle_selection(selected_units, unit)
+            toggle_selection(selected_units, unit)
         
 
 def toggle_selection(selected_units, unit):
@@ -32,6 +32,7 @@ def mouse_interpreter(clicked_position, clicked_button, selected_units):
         for unit in selected_units:
             unit.destination = RootObject(clicked_position[0], clicked_position[1], 30)
             print(f"setting {unit.name} destination to {unit.destination.position}")
+            toggle_selection(selected_units, unit)        
 
 
 

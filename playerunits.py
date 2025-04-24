@@ -66,15 +66,15 @@ class PlayerRobot(RootObject):
     def take_damage(self, damage):
         #print(self.timer)
         if self.timer <= 0:
-            print(f"{self.name} took {damage} damage")
+            #print(f"{self.name} took {damage} damage")
             self.health -= damage
-            print(f"{self.name} health: {self.health}")
+            #print(f"{self.name} health: {self.health}")
             self.timer = HIT_COOLDOWN
             #print(f"time to next hit: {self.timer}")
         #else:
             #print(f"too soon for {self.name} to take damage")
         if self.health <= 0:
-                print("something broke")
+                #print("something broke")
                 self.Something_Broke()
 
     def Find_Target(self, target_group):
@@ -84,26 +84,16 @@ class PlayerRobot(RootObject):
         for unit in target_group:
             if target_range.collision(unit):
                 valid_targets.append(unit)
-
         #print(f"{len(valid_targets)} valid targets")
         if len(valid_targets) > 0:
-            
-            c_x = self.position.x + self.sight_range
-            c_y = self.position.y + self.sight_range
-            c_vector = pygame.Vector2(c_x, c_y)
             c_distance = float('inf')
-            c_target = None
             for target in valid_targets:
                 #print(f"target found: {target.name}")
-                target_dist = pygame.Vector2(target.position.x, target.position.y)
-                if pygame.math.Vector2.distance_to(target_dist, c_vector) < c_distance:
-                    c_target = target
-                    c_x = target.position.x
-                    c_y = target.position.y
-                    c_vector = pygame.Vector2(c_x, c_y)
-                    #print(f"set target {target.name} as target")
-            self.current_target = c_target
-            #print(f"current target is {self.current_target.name}")
+                target_dist = pygame.math.Vector2.distance_to(pygame.Vector2(target.position.x, target.position.y), self.position)
+                if target_dist < c_distance:                      
+                    c_distance = target_dist
+                    #print(f"set target {target.name} as target. distance to target {c_distance}")
+                    self.current_target = target
         if len(valid_targets) == 0:
             #print(target_group)
             self.current_target = None
@@ -167,11 +157,11 @@ class BasicBullet(RootObject):
         self.velocity = velocity
         self.damage = BASIC_BULLET_DAMAGE
         self.timer = BASIC_BULLET_LIFESPAN
-        self.color = "white"
+        self.color = "yellow"
 
     def draw(self, screen):
         if self.timer < BASIC_BULLET_LIFESPAN / 2:
-            self.color = "gray"
+            self.color = "orange"
         pygame.draw.circle(screen, self.color, self.position, self.radius)
 
     def update(self, dt):

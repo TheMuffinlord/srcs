@@ -92,11 +92,11 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             if len(valid_targets) > 0:
                 c_distance = float('inf')
                 for target in valid_targets:
-                    print(f"target found: {target.name}")
+                    #print(f"target found: {target.name}")
                     target_dist = pygame.math.Vector2.distance_to(pygame.Vector2(target.position.x, target.position.y), self.position)
                     if target_dist < c_distance:                      
                         c_distance = target_dist
-                        print(f"set target {target.name} as target. distance to target {c_distance}")
+                        #print(f"set target {target.name} as target. distance to target {c_distance}")
                         self.destination = target
                 self.current_movement = ValidMovements.FollowEnemy
             else:
