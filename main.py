@@ -13,7 +13,6 @@ def main():
     #eventually i'm going to need to pass some variables between the modes 
     #but for now this is certified good enough    
     Waiting_On_Space = True
-    print("press any key to start.")
     while Waiting_On_Space:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:

@@ -188,7 +188,11 @@ class PlayerRobot(RootObject):
     def take_damage(self, damage):
         #print(self.timer)
         if self.timer <= 0:
-            #print(f"{self.name} took {damage} damage")
+            lines = [
+                "!!UNIT DAMAGED!!",
+                f"!!{damage} DAMAGE!!",
+            ]
+            dmgbox = DamageAlertBox(self, lines)
             self.health -= damage
             #print(f"{self.name} health: {self.health}")
             self.timer = HIT_COOLDOWN
@@ -266,7 +270,12 @@ class PlayerRobot(RootObject):
             while broken == False:
                 break_roll = random.randint(0, 1)
                 broken = self.equipment[break_roll].Get_Broken()
-            print(f"{self.equipment[break_roll]} broke")
+            break_text = [
+                f"!!BROKEN!!",
+                f"{self.equipment[break_roll].short_form()}",
+                f"!!BROKEN!!"
+            ]
+            break_box = DamageAlertBox(self, break_text)
             self.health = self.maxhealth
 
     def Unit_Destroyed(self):
@@ -306,6 +315,9 @@ class EngineType():
     def __repr__(self):
         return f"Engine, move speed {self.move_speed}, turn rate {self.turn_speed}, intact: {self.intact}"
         
+    def short_form(self):
+        return f"Engine {self.move_speed}/{self.turn_speed}"
+
     def Get_Broken(self):
         self.intact = False
         self.move_speed = self.broken_move_speed
@@ -315,14 +327,16 @@ class PrimaryWeaponType():
     def __init__(self, shot_diff, rate_of_fire):
         self.intact = True
         self.shot_diff = shot_diff
-        self.broken_shot_diff = shot_diff
-        self.rate_of_fire = rate_of_fire * 3
-        self.broken_rof = rate_of_fire / 5
+        self.broken_shot_diff = shot_diff * 3
+        self.rate_of_fire = rate_of_fire
+        self.broken_rof = rate_of_fire * 25
         self.timer = 0
     
     def __repr__(self):
         return f"Primary Weapon: Minigun, {self.shot_diff*2} degree arc, {self.rate_of_fire} shot timer; intact: {self.intact}"
 
+    def short_form(self):
+        return f"Minigun {self.shot_diff*2}/{self.rate_of_fire//600}"
     #def __str__(self):
         #return f"Primary Weapon: Minigun, {self.shot_diff*2} degree arc, {self.rate_of_fire} shot timer; intact: {self.intact}"
 
@@ -526,6 +540,78 @@ class EnemySpawner(RootObject):
             new_enemy.valid_targets = PlayerGroup
             self.spawn_timer = SPAWN_COOLDOWN
 
+class TextBoxObject(pygame.sprite.Sprite):
+    def __init__(self, origin_x, origin_y, width, height, lines: list):
+        if hasattr(self, "containers"):
+            super().__init__(self.containers)
+        else:
+            super().__init__()
+        self.text_font = pygame.font.get_default_font() #overwrite in subclasses
+        self.text_size = 12 #overwrite in subclasses
+        self.text_object = pygame.font.Font(self.text_font, self.text_size)
+        self.text_color = "white"
+        self.x = origin_x
+        self.y = origin_y
+        max_w = width
+        max_h = height
+        overall_h = 0
+        for line in lines:
+            line_text = self.text_object.render(line, True, self.text_color)
+            line_w, line_h = line_text.get_size()
+            if line_w > max_w:
+                max_w = line_w + 10
+            overall_h += line_h
+            if overall_h > max_h:
+                max_h = overall_h + 10
+        self.width = max_w
+        self.height = max_h
+        self.color = "white"
+        #self.box = pygame.rect.Rect(self.x, self.y, self.width, self.height) #initial location
+        self.lines = lines
+        
+        
+    def draw(self, screen):
+        pass
+
+    def update(self, dt):
+        pass
+
+class DamageAlertBox(TextBoxObject):
+    def __init__(self, o_sprite: pygame.sprite.Sprite, lines: list):
+        super().__init__(o_sprite.position.x, o_sprite.position.y - DAMAGE_ALERT_WIDTH, DAMAGE_ALERT_WIDTH, DAMAGE_ALERT_HEIGHT, lines)
+        self.owner = o_sprite
+        self.x = self.owner.position.x
+        self.y = self.owner.position.y - DAMAGE_ALERT_HEIGHT
+        self.color = "yellow"
+        self.timer_start = 3
+        self.timer = 0
+        self.lifespan = DAMAGE_ALERT_LIFESPAN
+
+    def draw(self, screen):
+        self.box = pygame.rect.Rect(self.x, self.y, self.width, self.height)
+        pygame.draw.rect(screen, self.color, self.box, 2)
+        start_x = self.x + 5
+        start_y = self.y + 5
+        for line in self.lines:
+            line_text = self.text_object.render(line, True, self.text_color)
+            y_diff = line_text.get_size()[1]
+            screen.blit(line_text, (start_x, start_y))
+            start_y += y_diff
+
+    def update(self, dt):
+        if self.timer < 0:
+            self.timer = self.timer_start
+            if self.color == "yellow":
+                self.color = "red"
+            elif self.color == "red":
+                self.color = "yellow"
+        self.timer -= 1
+        self.lifespan -= dt
+        #self.x = self.owner.position.x
+        #self.y = self.owner.position.y - DAMAGE_ALERT_HEIGHT
+        if self.lifespan <= 0:
+            self.kill()
+
 # main battle loop
 
 def battle_mode(screen):
@@ -547,6 +633,7 @@ def battle_mode(screen):
     BasicBullet.containers = (loop_updatable, loop_drawable, BulletGroup)
     EnemySpawner.containers = (loop_updatable, loop_drawable, EnemyGroup)
     SelectionCursor.containers = (loop_updatable, loop_drawable)
+    DamageAlertBox.containers = (loop_updatable, loop_drawable)
 
     Player = PlayerRobot(250, 300, "john character", 1)
     Player2 = PlayerRobot(100, 650, "jane character", 2)
@@ -609,7 +696,7 @@ def battle_mode(screen):
             
         
         for item in loop_drawable:
-            item.c_bounds = item.draw(screen)    
+            item.draw(screen)    
 
         pygame.display.flip()
         dt = clock.tick(60)/1000      
