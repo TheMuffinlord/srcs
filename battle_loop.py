@@ -279,7 +279,12 @@ class PlayerRobot(RootObject):
             self.health = self.maxhealth
 
     def Unit_Destroyed(self):
-        print(f"unit {self.name} destroyed, please code this")
+        sad_end = [
+            "ALERT ALERT ALERT UH OH",
+            f"UNIT {self.name}",
+            "!!!!!DESTROYED!!!!!"
+        ]
+        sad_box = DamageAlertBox(self, sad_end)
         self.kill()
         #put a big explosion here or something, i dunno
         
@@ -560,7 +565,7 @@ class TextBoxObject(pygame.sprite.Sprite):
             line_w, line_h = line_text.get_size()
             if line_w > max_w:
                 max_w = line_w + 10
-            overall_h += line_h
+            overall_h += line_h + 2 #these probably need to be constants eventually
             if overall_h > max_h:
                 max_h = overall_h + 10
         self.width = max_w
@@ -590,11 +595,11 @@ class DamageAlertBox(TextBoxObject):
     def draw(self, screen):
         self.box = pygame.rect.Rect(self.x, self.y, self.width, self.height)
         pygame.draw.rect(screen, self.color, self.box, 2)
-        start_x = self.x + 5
         start_y = self.y + 5
         for line in self.lines:
             line_text = self.text_object.render(line, True, self.text_color)
             y_diff = line_text.get_size()[1]
+            start_x = self.box.centerx - (line_text.get_width() // 2)
             screen.blit(line_text, (start_x, start_y))
             start_y += y_diff
 
@@ -633,10 +638,10 @@ def battle_mode(screen):
     BasicBullet.containers = (loop_updatable, loop_drawable, BulletGroup)
     EnemySpawner.containers = (loop_updatable, loop_drawable, EnemyGroup)
     SelectionCursor.containers = (loop_updatable, loop_drawable)
-    DamageAlertBox.containers = (loop_updatable, loop_drawable)
+    TextBoxObject.containers = (loop_updatable, loop_drawable)
 
     Player = PlayerRobot(250, 300, "john character", 1)
-    Player2 = PlayerRobot(100, 650, "jane character", 2)
+    Player2 = PlayerRobot(250, 650, "jane character", 2)
     
     Spawner = EnemySpawner(900, 500)
     Spawner2 = EnemySpawner(900, 200)
@@ -686,17 +691,13 @@ def battle_mode(screen):
                     print("some other action took place?")
 
         pygame.Surface.fill(screen, "black")
+
         for item in loop_updatable:
-            """ if isinstance(item, PlayerRobot):
-                item.update(dt, EnemyGroup)
-            elif isinstance(item, EnemyUnit) or isinstance(item, EnemySpawner):
-                item.update(dt, PlayerGroup, BulletGroup)
-            else: """
             item.update(dt)
-            
         
         for item in loop_drawable:
             item.draw(screen)    
+
 
         pygame.display.flip()
         dt = clock.tick(60)/1000      
