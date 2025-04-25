@@ -45,7 +45,7 @@ class RootObject(pygame.sprite.WeakSprite):
             super().__init__()
 
         self.position = pygame.Vector2(x, y)
-        self.velocity = pygame.Vector2(0, 0)
+        #self.velocity = pygame.Vector2(0, 0)
         self.radius = radius
         self.rotation = 0
         self.timer = 0
@@ -311,7 +311,31 @@ class BasicBullet(RootObject):
         if self.timer <= 0:
             self.kill()
         self.position += (self.velocity * dt)
-        
+
+    def get_particled(self):
+        pops = random.randint(1,20)
+        for n in range(pops):
+            debris = Particle(self.position.x, self.position.y)
+        self.kill()
+            
+class Particle(RootObject):
+    def __init__(self, x, y):
+        super().__init__(x, y, 1)
+        self.color = "yellow"
+        self.timer = PARTICLE_DECAY
+        self.rotation = random.randint(0,359)
+        self.movespeed = PARTICLE_SPEED
+
+    def update(self, dt):
+        self.timer -= dt
+        if self.timer <= 0:
+            self.kill()
+        self.move(dt)
+
+    def draw(self, screen):
+        if self.timer < PARTICLE_DECAY / 2:
+            self.color = "orange"
+        pygame.draw.circle(screen, self.color, self.position, self.radius)
 
 class EngineType():
     def __init__(self, move_speed, turn_speed):
@@ -412,7 +436,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
 
     def check_bullet(self, bullet, dt):
         if self.collision(bullet):
-            bullet.kill()
+            bullet.get_particled()
             self.take_damage(bullet, dt)
             self.push_away(dt, bullet.velocity, bullet.knockback)
         
@@ -524,15 +548,15 @@ class EnemySpawner(RootObject):
         self.timer -= dt
         self.spawn_timer -= dt
         for bullet in BulletGroup:
-            self.check_bullet(bullet)
+            self.check_bullet(bullet, dt)
         if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
             self.color = "red"
         if self.health > ENEMY_MAX_HEALTH:            
             self.enemy_spawn()
 
-    def check_bullet(self, bullet):
+    def check_bullet(self, bullet, dt):
         if self.collision(bullet):
-            bullet.kill()
+            bullet.get_particled()
             self.color = "white"
             self.take_damage(bullet.damage)
         
@@ -650,6 +674,7 @@ def battle_mode(screen):
     EnemySpawner.containers = (loop_updatable, loop_drawable, EnemyGroup)
     SelectionCursor.containers = (loop_updatable, loop_drawable)
     TextBoxObject.containers = (loop_updatable, loop_drawable)
+    Particle.containers = (loop_drawable, loop_updatable)
 
     Player = PlayerRobot(250, 300, "john character", 1)
     Player2 = PlayerRobot(250, 650, "jane character", 2)
