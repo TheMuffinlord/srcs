@@ -92,6 +92,9 @@ class RootObject(pygame.sprite.WeakSprite):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         self.position += forward * self.movespeed * dt
 
+    def push_away(self, dt, vector, strength):
+        self.position += vector * strength * dt
+
     def find_angle(self, target):
         angle = math.atan2(self.position.y -target.position.y, self.position.x - target.position.x)
         degrees = math.degrees(angle)+90
@@ -296,6 +299,7 @@ class BasicBullet(RootObject):
         self.damage = BASIC_BULLET_DAMAGE
         self.timer = BASIC_BULLET_LIFESPAN
         self.color = "yellow"
+        self.knockback = BASIC_BULLET_KNOCKBACK
 
     def draw(self, screen):
         if self.timer < BASIC_BULLET_LIFESPAN / 2:
@@ -396,7 +400,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         self.Movement_Choice(dt)
         self.Find_Target()
         for bullet in BulletGroup:
-            self.check_bullet(bullet)
+            self.check_bullet(bullet, dt)
         if self.destination and self.collision_rough(self.destination) == True and self.destination.can_damage == True:
             self.destination.take_damage(self.damage_value)
             #print(f"{self.name} tried to hit {self.destination.name}")
@@ -406,23 +410,28 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
                 self.current_target = None
         
 
-    def check_bullet(self, bullet):
+    def check_bullet(self, bullet, dt):
         if self.collision(bullet):
             bullet.kill()
-            self.color = "white"
-            self.take_damage(bullet.damage)
+            self.take_damage(bullet, dt)
+            self.push_away(dt, bullet.velocity, bullet.knockback)
         
 
-    def take_damage(self, damage):
+    def take_damage(self, source, dt):
         if self.timer <= 0:
             #print(f"took {damage} damage")
-            self.health -= damage
+            self.color = "white"
+            self.health -= source.damage
             self.timer = HIT_COOLDOWN
             if self.health <= 0:
                 self.kill()
                 if self.spawner != None and self.spawner.alive():
                     self.spawner.health += ENEMY_MAX_HEALTH // 2
                     self.spawner.color = "green"
+
+                
+                
+                
 
     def Movement_Choice(self, dt):
         match self.current_movement:
@@ -449,8 +458,10 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
                         #print(f"set target {target.name} as target. distance to target {c_distance}")
                         self.destination = target
                 self.current_movement = ValidMovements.FollowEnemy
+                self.sight_range = ENEMY_DETECTION_RANGE
             else:
                 self.destination = None
+                self.sight_range += 10
                 self.current_movement = ValidMovements.WanderAround
         
         
