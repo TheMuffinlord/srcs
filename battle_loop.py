@@ -77,6 +77,9 @@ class RootObject(pygame.sprite.WeakSprite):
         # sub-classes must override
         pass
 
+    def Update_rect(self):
+        self.rect = pygame.rect.Rect(self.position.x - (self.radius/2), self.position.y - (self.radius/2), self.radius, self.radius)
+
     def collision(self, object):
         if object.position.distance_to(self.position) <= (self.radius + object.radius):
             return True
@@ -181,6 +184,7 @@ class PlayerRobot(RootObject):
         self.Find_Target()
         self.Fire_At_Will(dt)
         self.Move_Closer(dt)
+        self.Update_rect()
         
         
     def Equipment_Check(self):
@@ -253,11 +257,8 @@ class PlayerRobot(RootObject):
     def Fire_At_Will(self, dt):
         if self.current_target != None:
             self.aim_rotate(dt)
-            bullet_spread = random.randrange((self.shot_diff * -1), self.shot_diff)
-            forward = pygame.Vector2(0, 1).rotate(self.aim_rotation + bullet_spread)
-            b_x = self.position.x + forward.x * self.radius
-            b_y = self.position.y + forward.y * self.radius
-            self.equipment[1].Start_Shooting(dt, forward, b_x, b_y)
+            print(f"aim rotation: {self.aim_rotation} degrees, body rotation: {self.rotation} degrees")
+            self.equipment[1].Start_Shooting(dt, self.aim_rotation, self.position.x, self.position.y, self.radius)
             
     def Something_Broke(self):
         intact_gear = []
@@ -292,11 +293,14 @@ class PlayerRobot(RootObject):
         #put a big explosion here or something, i dunno
         
 class BasicLaser(RootObject):
-    def __init__(self, x, y, velocity):
+    def __init__(self, x, y, r_vector: pygame.Vector2):
         super().__init__(x, y, BASIC_BULLET_RADIUS)
-        self.velocity = velocity
-        self.beam_length = int(self.position.distance_to(self.velocity))
-        self.damage = BASIC_LASER_DAMAGE
+        self.beam_length = BASIC_LASER_LENGTH * (SCREEN_HEIGHT // SCREEN_WIDTH)
+        #self.velocity = self.position + r_vector * self.beam_length
+        self.velocity = r_vector 
+        #self.beam_extent = 
+        #print(f"beam should go from {self.position.xy} to {self.velocity.xy}")
+        self.damage =  BASIC_LASER_DAMAGE
         self.timer = BASIC_LASER_LIFESPAN
         self.color = (128,128,255)
         self.knockback = BASIC_LASER_KNOCKBACK
@@ -314,20 +318,20 @@ class BasicLaser(RootObject):
     
     def get_particled(self, collision_object):
         if self.been_particled == False:
+            impact_point = collision_object.rect.clipline(self.line)
             pops = random.randint(1,20)
-            c_x, c_y = collision_object.position.xy
+            c_x, c_y = impact_point[0]
             for n in range(pops):
                 debris = Particle(c_x, c_y)
-            self.velocity = pygame.Vector2(c_x, c_y)
+            self.beam_extent = pygame.Vector2(c_x, c_y)
             self.been_particled = True
 
-    def collision(self, object):
+    def collision(self, object: pygame.sprite.Sprite): #had to override the collision class. not working as intended but does detect!
         if self.line != None:
-            if self.line.clipline(object.rect) and self.beam_length <= object.position.distance_to(self.position):
+            impact_point = object.rect.clipline(self.line)
+            if impact_point != ():
                 return True
         return False
-
-        
         
 
 class BasicBullet(RootObject):
@@ -420,10 +424,15 @@ class PrimaryWeaponType():
         return False
         
 
-    def Start_Shooting(self, dt, direction, b_x, b_y):
+    def Start_Shooting(self, dt, rotation, unit_x, unit_y, radius):
         if self.timer <= 0:
-            #bullet = BasicBullet(b_x, b_y, direction * BASIC_BULLET_VELOCITY)
-            bullet = BasicLaser(b_x, b_y, direction * BASIC_BULLET_VELOCITY)
+            bullet_spread = random.randrange((self.shot_diff * -1), self.shot_diff)
+            forward = pygame.Vector2(0, 1).rotate(rotation + bullet_spread)
+            b_x = unit_x + forward.x * radius
+            b_y = unit_y + forward.y * radius
+            print(f"{forward.xy}, {b_x}, {b_y}")
+            #bullet = BasicBullet(b_x, b_y, forward * BASIC_BULLET_VELOCITY)
+            bullet = BasicLaser(b_x, b_y, forward)
             self.timer = self.rate_of_fire
         self.timer -= dt
 
@@ -462,6 +471,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         self.timer -= dt
         self.Movement_Choice(dt)
         self.Find_Target()
+        self.Update_rect()
         for bullet in BulletGroup:
             self.check_bullet(bullet, dt)
         if self.destination and self.collision_rough(self.destination) == True and self.destination.can_damage == True:
@@ -586,6 +596,7 @@ class EnemySpawner(RootObject):
         global BulletGroup
         self.timer -= dt
         self.spawn_timer -= dt
+        self.Update_rect()
         for bullet in BulletGroup:
             self.check_bullet(bullet, dt)
         if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
