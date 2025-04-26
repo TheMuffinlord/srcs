@@ -291,6 +291,44 @@ class PlayerRobot(RootObject):
         self.kill()
         #put a big explosion here or something, i dunno
         
+class BasicLaser(RootObject):
+    def __init__(self, x, y, velocity):
+        super().__init__(x, y, BASIC_BULLET_RADIUS)
+        self.velocity = velocity
+        self.beam_length = int(self.position.distance_to(self.velocity))
+        self.damage = BASIC_LASER_DAMAGE
+        self.timer = BASIC_LASER_LIFESPAN
+        self.color = (128,128,255)
+        self.knockback = BASIC_LASER_KNOCKBACK
+        self.beam = pygame.sprite.Group()
+        self.line = None
+        self.been_particled = False
+        
+    def draw(self,screen):
+            self.line = pygame.draw.line(screen, self.color, self.position.xy, self.velocity.xy, self.radius)
+
+    def update(self, dt):
+        self.timer -= dt
+        if self.timer <= 0:
+            self.kill()
+    
+    def get_particled(self, collision_object):
+        if self.been_particled == False:
+            pops = random.randint(1,20)
+            c_x, c_y = collision_object.position.xy
+            for n in range(pops):
+                debris = Particle(c_x, c_y)
+            self.velocity = pygame.Vector2(c_x, c_y)
+            self.been_particled = True
+
+    def collision(self, object):
+        if self.line != None:
+            if self.line.clipline(object.rect) and self.beam_length <= object.position.distance_to(self.position):
+                return True
+        return False
+
+        
+        
 
 class BasicBullet(RootObject):
     def __init__(self, x, y, velocity):
@@ -312,7 +350,7 @@ class BasicBullet(RootObject):
             self.kill()
         self.position += (self.velocity * dt)
 
-    def get_particled(self):
+    def get_particled(self, *args):
         pops = random.randint(1,20)
         for n in range(pops):
             debris = Particle(self.position.x, self.position.y)
@@ -384,7 +422,8 @@ class PrimaryWeaponType():
 
     def Start_Shooting(self, dt, direction, b_x, b_y):
         if self.timer <= 0:
-            bullet = BasicBullet(b_x, b_y, direction * BASIC_BULLET_VELOCITY)
+            #bullet = BasicBullet(b_x, b_y, direction * BASIC_BULLET_VELOCITY)
+            bullet = BasicLaser(b_x, b_y, direction * BASIC_BULLET_VELOCITY)
             self.timer = self.rate_of_fire
         self.timer -= dt
 
@@ -435,8 +474,8 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         
 
     def check_bullet(self, bullet, dt):
-        if self.collision(bullet):
-            bullet.get_particled()
+        if bullet.collision(self):
+            bullet.get_particled(self)
             self.take_damage(bullet, dt)
             self.push_away(dt, bullet.velocity, bullet.knockback)
         
@@ -556,7 +595,7 @@ class EnemySpawner(RootObject):
 
     def check_bullet(self, bullet, dt):
         if self.collision(bullet):
-            bullet.get_particled()
+            bullet.get_particled(self)
             self.color = "white"
             self.take_damage(bullet.damage)
         
@@ -671,6 +710,7 @@ def battle_mode(screen):
     PlayerRobot.containers = (loop_updatable, loop_drawable, PlayerGroup)
     EnemyUnit.containers = (loop_updatable, loop_drawable, EnemyGroup)
     BasicBullet.containers = (loop_updatable, loop_drawable, BulletGroup)
+    BasicLaser.containers = (loop_drawable, loop_updatable, BulletGroup)
     EnemySpawner.containers = (loop_updatable, loop_drawable, EnemyGroup)
     SelectionCursor.containers = (loop_updatable, loop_drawable)
     TextBoxObject.containers = (loop_updatable, loop_drawable)
