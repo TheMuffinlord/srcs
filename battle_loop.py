@@ -102,9 +102,9 @@ class RootObject(pygame.sprite.WeakSprite):
         angle = math.atan2(self.position.y - target.position.y, self.position.x - target.position.x)
         degrees = math.degrees(angle)+90
 
-        while degrees < 0:
+        while degrees < -180:
             degrees += 360
-        while degrees > 360:
+        while degrees > 180:
             degrees -= 360
         return degrees
 
@@ -185,7 +185,7 @@ class PlayerRobot(RootObject):
         self.Find_Target()
         self.Fire_At_Will(dt)
         self.Move_Closer(dt)
-        self.Update_rect()
+        #self.Update_rect()
         
         
     def Equipment_Check(self):
@@ -233,8 +233,8 @@ class PlayerRobot(RootObject):
             #print(EnemyGroup)
             self.current_target = None
 
-    def aim_rotate(self, dt):
-        degrees = self.find_angle(self.current_target)
+    def aim_rotate(self, dt): #TO DO:  CLAMP THIS LATER
+        degrees = self.find_angle(self.current_target) 
         if degrees < self.aim_rotation:
             self.aim_rotation += self.rotation_speed * (-1 * dt)
         elif degrees > self.aim_rotation:
