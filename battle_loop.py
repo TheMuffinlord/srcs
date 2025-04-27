@@ -130,6 +130,7 @@ class SelectionCursor(RootObject):
         for unit in self.selected_units:
             if unit.destination == self:
                 self.in_use = True
+        
         if self.in_use == False:
             self.kill()
         
@@ -250,7 +251,7 @@ class PlayerRobot(RootObject):
                 self.rotate(dt * -1)
             elif degrees > self.rotation:
                 self.rotate(dt)
-            if self.collision(self.destination) == False:
+            if self.collision_rough(self.destination) == False:
                 self.move(dt)
             else:
                 self.destination = None
@@ -296,7 +297,7 @@ class PlayerRobot(RootObject):
 class BasicLaser(RootObject):
     def __init__(self, x, y, rotation):
         super().__init__(x, y, BASIC_BULLET_RADIUS)
-        self.beam_length = BASIC_LASER_LENGTH * (SCREEN_HEIGHT // SCREEN_WIDTH)
+        self.beam_length = BASIC_LASER_LENGTH
         #self.velocity = self.position + r_vector * self.beam_length
         self.velocity = self.position.rotate(rotation)
         self.radian_rotation = math.radians(rotation+90)
@@ -308,13 +309,16 @@ class BasicLaser(RootObject):
         self.timer = BASIC_LASER_LIFESPAN
         self.color = pygame.Color(128,128,255)
         self.knockback = BASIC_LASER_KNOCKBACK
-        self.beam = pygame.sprite.Group()
         self.line = None
         self.been_particled = False
         
     def draw(self,screen):
+        #if self.rect:
+            #pygame.draw.rect(screen, "white", self.rect)
         self.line = pygame.draw.line(screen, self.color, self.position.xy, self.endpoint, self.radius)
+        #return pygame.draw.polygon(screen, self.color, [self.position.xy, self.endpoint, (self.end_x + self.radius, self.end_y + self.radius), (self.position.x + self.radius, self.position.y + self.radius)])
         return self.line
+
     
     def update(self, dt):
         self.timer -= dt
@@ -331,12 +335,12 @@ class BasicLaser(RootObject):
             for n in range(pops):
                 debris = Particle(c_x, c_y)
             self.endpoint = (c_x, c_y)
-            print(f"placing particles at {self.endpoint}")
+            #print(f"placing particles at {self.endpoint}")
             self.been_particled = True
 
     def collision(self, object: pygame.sprite.Sprite): #had to override the collision class. not working as intended but does detect!
         if self.line != None:
-            impact_point = object.rect.clipline(self.line)
+            impact_point = object.rect.clipline(self.position.xy, self.endpoint)
             if impact_point != ():
                 return True
             return False
@@ -495,7 +499,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         
 
     def check_bullet(self, bullet, dt):
-        if bullet.collision(self):
+        if bullet.collision(self) == True:
             bullet.get_particled(self)
             self.take_damage(bullet, dt)
             self.push_away(dt, bullet.velocity, bullet.knockback)
