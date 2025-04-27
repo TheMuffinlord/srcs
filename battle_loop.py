@@ -53,7 +53,7 @@ class RootObject(pygame.sprite.WeakSprite):
         self.movespeed = 0
         self.name = "root object"
         self.can_damage = False
-        self.rect = pygame.rect.Rect(x - (radius/2), y - (radius/2), radius, radius)
+        
 
     def __repr__(self):
         pass
@@ -239,7 +239,7 @@ class PlayerRobot(RootObject):
             self.aim_rotation += self.rotation_speed * (-1 * dt)
         elif degrees > self.aim_rotation:
             self.aim_rotation += self.rotation_speed * dt
-        print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
+        #print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
        
     def Move_Closer(self, dt):
         global PlayerGroup, EnemyGroup #gotta think about this one
@@ -258,7 +258,7 @@ class PlayerRobot(RootObject):
     def Fire_At_Will(self, dt):
         if self.current_target != None:
             self.aim_rotate(dt)
-            print(f"aim rotation: {self.aim_rotation} degrees, body rotation: {self.rotation} degrees")
+            #print(f"aim rotation: {self.aim_rotation} degrees, body rotation: {self.rotation} degrees")
             self.equipment[1].Start_Shooting(dt, self.aim_rotation, self.position.x, self.position.y, self.radius)
             
     def Something_Broke(self):
@@ -303,7 +303,7 @@ class BasicLaser(RootObject):
         self.end_x = BASIC_LASER_LENGTH * math.cos(self.radian_rotation) + self.position.x
         self.end_y = BASIC_LASER_LENGTH * math.sin(self.radian_rotation) + self.position.y
         self.endpoint = (self.end_x, self.end_y)
-        print(f"beam should go from {self.position.xy} to {self.end_x}, {self.end_y}")
+        #print(f"beam should go from {self.position.xy} to {self.end_x}, {self.end_y}")
         self.damage =  BASIC_LASER_DAMAGE
         self.timer = BASIC_LASER_LIFESPAN
         self.color = pygame.Color(128,128,255)
@@ -313,7 +313,8 @@ class BasicLaser(RootObject):
         self.been_particled = False
         
     def draw(self,screen):
-            self.line = pygame.draw.line(screen, self.color, self.position.xy, self.endpoint, self.radius)
+        self.line = pygame.draw.line(screen, self.color, self.position.xy, self.endpoint, self.radius)
+        return self.line
     
     def update(self, dt):
         self.timer -= dt
@@ -325,12 +326,12 @@ class BasicLaser(RootObject):
     
     def get_particled(self, collision_object):
         if self.been_particled == False:
-            impact_point = collision_object.rect.clipline(self.line)
+            c_x, c_y = collision_object.position.xy
             pops = random.randint(1,20)
-            c_x, c_y = impact_point[0]
             for n in range(pops):
                 debris = Particle(c_x, c_y)
             self.endpoint = (c_x, c_y)
+            print(f"placing particles at {self.endpoint}")
             self.been_particled = True
 
     def collision(self, object: pygame.sprite.Sprite): #had to override the collision class. not working as intended but does detect!
@@ -338,6 +339,7 @@ class BasicLaser(RootObject):
             impact_point = object.rect.clipline(self.line)
             if impact_point != ():
                 return True
+            return False
         return False
         
 
@@ -353,7 +355,7 @@ class BasicBullet(RootObject):
     def draw(self, screen):
         if self.timer < BASIC_BULLET_LIFESPAN / 2:
             self.color = "orange"
-        pygame.draw.circle(screen, self.color, self.position, self.radius)
+        return pygame.draw.circle(screen, self.color, self.position, self.radius)
 
     def update(self, dt):
         self.timer -= dt
@@ -384,7 +386,7 @@ class Particle(RootObject):
     def draw(self, screen):
         if self.timer < PARTICLE_DECAY / 2:
             self.color = "orange"
-        pygame.draw.circle(screen, self.color, self.position, self.radius)
+        return pygame.draw.circle(screen, self.color, self.position, self.radius)
 
 class EngineType():
     def __init__(self, move_speed, turn_speed):
@@ -480,7 +482,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         self.timer -= dt
         self.Movement_Choice(dt)
         self.Find_Target()
-        self.Update_rect()
+        #self.Update_rect()
         for bullet in BulletGroup:
             self.check_bullet(bullet, dt)
         if self.destination and self.collision_rough(self.destination) == True and self.destination.can_damage == True:
@@ -510,10 +512,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
                 if self.spawner != None and self.spawner.alive():
                     self.spawner.health += ENEMY_MAX_HEALTH // 2
                     self.spawner.color = "green"
-
-                
-                
-                
+          
 
     def Movement_Choice(self, dt):
         match self.current_movement:
@@ -605,7 +604,7 @@ class EnemySpawner(RootObject):
         global BulletGroup
         self.timer -= dt
         self.spawn_timer -= dt
-        self.Update_rect()
+        #self.Update_rect()
         for bullet in BulletGroup:
             self.check_bullet(bullet, dt)
         if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
@@ -614,7 +613,7 @@ class EnemySpawner(RootObject):
             self.enemy_spawn()
 
     def check_bullet(self, bullet, dt):
-        if self.collision(bullet):
+        if bullet.collision(self):
             bullet.get_particled(self)
             self.color = "white"
             self.take_damage(bullet.damage)
@@ -732,7 +731,7 @@ def battle_mode(screen):
     BasicBullet.containers = (loop_updatable, loop_drawable, BulletGroup)
     BasicLaser.containers = (loop_drawable, loop_updatable, BulletGroup)
     EnemySpawner.containers = (loop_updatable, loop_drawable, EnemyGroup)
-    SelectionCursor.containers = (loop_updatable, loop_drawable)
+    SelectionCursor.containers = (loop_updatable, loop_drawable, SelectionGroup)
     TextBoxObject.containers = (loop_updatable, loop_drawable)
     Particle.containers = (loop_drawable, loop_updatable)
 
@@ -792,7 +791,7 @@ def battle_mode(screen):
             item.update(dt)
         
         for item in loop_drawable:
-            item.draw(screen)    
+            item.rect = item.draw(screen)    
 
 
         pygame.display.flip()

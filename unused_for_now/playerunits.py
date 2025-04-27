@@ -1,8 +1,8 @@
 import pygame, random, math
 from enum import Enum
-from rootobjects import *
+from unused_for_now.rootobjects import *
 from constants import *
-from enemies import *
+from unused_for_now.enemies import *
 
 class ValidMovements(Enum):
     FollowEnemy = "following enemy"
