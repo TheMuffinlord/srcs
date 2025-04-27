@@ -99,11 +99,12 @@ class RootObject(pygame.sprite.WeakSprite):
         self.position += vector * strength * dt
 
     def find_angle(self, target):
-        angle = math.atan2(self.position.y -target.position.y, self.position.x - target.position.x)
+        angle = math.atan2(self.position.y - target.position.y, self.position.x - target.position.x)
         degrees = math.degrees(angle)+90
-        while degrees < 180:
+
+        while degrees < 0:
             degrees += 360
-        while degrees > 180:
+        while degrees > 360:
             degrees -= 360
         return degrees
 
@@ -238,7 +239,7 @@ class PlayerRobot(RootObject):
             self.aim_rotation += self.rotation_speed * (-1 * dt)
         elif degrees > self.aim_rotation:
             self.aim_rotation += self.rotation_speed * dt
-        #print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
+        print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
        
     def Move_Closer(self, dt):
         global PlayerGroup, EnemyGroup #gotta think about this one
@@ -293,26 +294,32 @@ class PlayerRobot(RootObject):
         #put a big explosion here or something, i dunno
         
 class BasicLaser(RootObject):
-    def __init__(self, x, y, r_vector: pygame.Vector2):
+    def __init__(self, x, y, rotation):
         super().__init__(x, y, BASIC_BULLET_RADIUS)
         self.beam_length = BASIC_LASER_LENGTH * (SCREEN_HEIGHT // SCREEN_WIDTH)
         #self.velocity = self.position + r_vector * self.beam_length
-        self.velocity = r_vector 
-        #self.beam_extent = 
-        #print(f"beam should go from {self.position.xy} to {self.velocity.xy}")
+        self.velocity = self.position.rotate(rotation)
+        self.radian_rotation = math.radians(rotation+90)
+        self.end_x = BASIC_LASER_LENGTH * math.cos(self.radian_rotation) + self.position.x
+        self.end_y = BASIC_LASER_LENGTH * math.sin(self.radian_rotation) + self.position.y
+        self.endpoint = (self.end_x, self.end_y)
+        print(f"beam should go from {self.position.xy} to {self.end_x}, {self.end_y}")
         self.damage =  BASIC_LASER_DAMAGE
         self.timer = BASIC_LASER_LIFESPAN
-        self.color = (128,128,255)
+        self.color = pygame.Color(128,128,255)
         self.knockback = BASIC_LASER_KNOCKBACK
         self.beam = pygame.sprite.Group()
         self.line = None
         self.been_particled = False
         
     def draw(self,screen):
-            self.line = pygame.draw.line(screen, self.color, self.position.xy, self.velocity.xy, self.radius)
-
+            self.line = pygame.draw.line(screen, self.color, self.position.xy, self.endpoint, self.radius)
+    
     def update(self, dt):
         self.timer -= dt
+        self.color.r -= 5
+        self.color.g -= 5
+        self.color.b -= 5
         if self.timer <= 0:
             self.kill()
     
@@ -323,7 +330,7 @@ class BasicLaser(RootObject):
             c_x, c_y = impact_point[0]
             for n in range(pops):
                 debris = Particle(c_x, c_y)
-            self.beam_extent = pygame.Vector2(c_x, c_y)
+            self.endpoint = (c_x, c_y)
             self.been_particled = True
 
     def collision(self, object: pygame.sprite.Sprite): #had to override the collision class. not working as intended but does detect!
@@ -406,6 +413,7 @@ class PrimaryWeaponType():
         self.rate_of_fire = rate_of_fire
         self.broken_rof = rate_of_fire * 25
         self.timer = 0
+        self.weapontype = "laser"
     
     def __repr__(self):
         return f"Primary Weapon: Minigun, {self.shot_diff*2} degree arc, {self.rate_of_fire} shot timer; intact: {self.intact}"
@@ -426,13 +434,14 @@ class PrimaryWeaponType():
 
     def Start_Shooting(self, dt, rotation, unit_x, unit_y, radius):
         if self.timer <= 0:
-            bullet_spread = random.randrange((self.shot_diff * -1), self.shot_diff)
-            forward = pygame.Vector2(0, 1).rotate(rotation + bullet_spread)
-            b_x = unit_x + forward.x * radius
-            b_y = unit_y + forward.y * radius
-            print(f"{forward.xy}, {b_x}, {b_y}")
-            #bullet = BasicBullet(b_x, b_y, forward * BASIC_BULLET_VELOCITY)
-            bullet = BasicLaser(b_x, b_y, forward)
+            if self.weapontype == "minigun":
+                bullet_spread = random.randrange((self.shot_diff * -1), self.shot_diff)
+                forward = pygame.Vector2(0, 1).rotate(rotation + bullet_spread)
+                b_x = unit_x + forward.x * radius
+                b_y = unit_y + forward.y * radius
+                bullet = BasicBullet(b_x, b_y, forward * BASIC_BULLET_VELOCITY)
+            if self.weapontype == "laser":
+                bullet = BasicLaser(unit_x, unit_y, rotation)
             self.timer = self.rate_of_fire
         self.timer -= dt
 
