@@ -101,8 +101,7 @@ class RootObject(pygame.sprite.WeakSprite):
     def find_angle(self, target):
         angle = math.atan2(self.position.y - target.position.y, self.position.x - target.position.x)
         degrees = math.degrees(angle)+90
-
-        while degrees < -180:
+        while degrees < 180:
             degrees += 360
         while degrees > 180:
             degrees -= 360
@@ -118,7 +117,7 @@ class SelectionCursor(RootObject):
         
     
     def draw(self, screen):
-        return pygame.draw.circle(screen, self.color, self.position, self.radius, 3)
+        pygame.draw.circle(screen, self.color, self.position, self.radius, 3)
 
     def update(self, *args):
         if self.color.g > 0:
@@ -128,9 +127,11 @@ class SelectionCursor(RootObject):
                 self.color.r += 5
             self.in_use = False
         for unit in self.selected_units:
+            if unit.collision(self):
+                self.selected_units.remove(unit)
+                unit.destination = None
             if unit.destination == self:
                 self.in_use = True
-        
         if self.in_use == False:
             self.kill()
         
@@ -245,8 +246,8 @@ class PlayerRobot(RootObject):
     def Move_Closer(self, dt):
         global PlayerGroup, EnemyGroup #gotta think about this one
         if self.destination != None:
-            #print("moving to destination")
             degrees = self.find_angle(self.destination)
+            print(f"moving to destination, current rotation {self.rotation}, target angle {degrees}")
             if degrees < self.rotation:
                 self.rotate(dt * -1)
             elif degrees > self.rotation:
@@ -296,7 +297,7 @@ class PlayerRobot(RootObject):
         
 class BasicLaser(RootObject):
     def __init__(self, x, y, rotation):
-        super().__init__(x, y, BASIC_BULLET_RADIUS)
+        super().__init__(x, y, BASIC_BULLET_RADIUS * 3)
         self.beam_length = BASIC_LASER_LENGTH
         #self.velocity = self.position + r_vector * self.beam_length
         self.velocity = self.position.rotate(rotation)
@@ -322,9 +323,9 @@ class BasicLaser(RootObject):
     
     def update(self, dt):
         self.timer -= dt
-        self.color.r -= 5
-        self.color.g -= 5
-        self.color.b -= 5
+        self.color.r -= 2
+        self.color.g -= 2
+        self.color.b -= 1
         if self.timer <= 0:
             self.kill()
     
@@ -334,9 +335,9 @@ class BasicLaser(RootObject):
             pops = random.randint(1,20)
             for n in range(pops):
                 debris = Particle(c_x, c_y)
-            self.endpoint = (c_x, c_y)
+            #self.endpoint = (c_x, c_y)
             #print(f"placing particles at {self.endpoint}")
-            self.been_particled = True
+            #self.been_particled = True
 
     def collision(self, object: pygame.sprite.Sprite): #had to override the collision class. not working as intended but does detect!
         if self.line != None:
