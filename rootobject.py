@@ -79,14 +79,13 @@ class RootObject(pygame.sprite.WeakSprite):
     def find_angle(self, target): #i hate this code so much but it *does* work
         angle = math.atan2(self.position.y - target.position.y, self.position.x - target.position.x)
         degrees = math.degrees(angle)+90
-        while degrees < 180: #IF YOU CHANGE THESE VALUES THE WHOLE THING BREAKS
+        '''while degrees < 180: #IF YOU CHANGE THESE VALUES THE WHOLE THING BREAKS
             degrees += 360
-        while degrees > 180: #THIS IS THE ONE WARNING
-            degrees -= 360
-        return degrees
+        while degrees > 180: #THIS IS THE ONE WARNING 
+            degrees -= 360''' # THE MUSEUM OF MUFFIN'S SHITTY CODING, THE ANGLE FINDER EXHIBIT
+        return math.remainder(degrees, 360)
     
-    def Find_Target(self, group): #TODO: MOVE THIS OFF TO CENTRAL TARGETING
-        
+    def Find_Target(self, group): #when i have pathfinding code i should really re-evaluate this but, again, it *works*
         #print(f"searching for enemies in {self.sight_range} radius")
         target_range = RootObject(self.position.x, self.position.y, self.sight_range)
         valid_targets = []
