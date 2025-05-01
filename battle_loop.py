@@ -1,10 +1,11 @@
 import pygame, math, random
+import pygamepal as pgp
 from constants import *
 from enum import Enum
 from rootobject import RootObject
 from playerunit import PlayerRobot
 from enemies import EnemyUnit, EnemySpawner
-from equipment import *
+from equipment import BasicBullet, BasicLaser, Particle
 from textboxes import *
 
 def kbd_interpreter(pressed_key):

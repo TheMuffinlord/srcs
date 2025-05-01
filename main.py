@@ -1,10 +1,11 @@
 import pygame
+import pygamepal as pgp
 from constants import *
-from battle_loop import battle_mode
+#from battle_loop import battle_mode
 
 
 
-def main():
+""" def main():
     pygame.init()
     print(f"Screen width: {SCREEN_WIDTH}")
     print(f"Screen height: {SCREEN_HEIGHT}")
@@ -19,9 +20,23 @@ def main():
                 Waiting_On_Space = False
 
     battle_mode(screen)
+ """
+game_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
+srcs_main = pgp.Game(size=game_size, caption="this space for rent", fps=60, fullscreen=False)
 
+class title_screen(pgp.Scene):
+    def init(self):
+        self.backgroundColor = "black"
+
+    def update(self):
+        if self.game.input.isKeyPressed(pygame.K_SPACE):
+            self.game.quit()
+
+    def draw(self):
+        pgp.drawText(self.overlaySurface, "if this works press space", position=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color="red", backgroundColor="blue")
 
 #this goes last
-if __name__ == "__main__":
-    main()
+title = title_screen(srcs_main)
+srcs_main.currentScene = title
+srcs_main.run()
