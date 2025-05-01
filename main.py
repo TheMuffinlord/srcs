@@ -1,7 +1,7 @@
 import pygame
 import pygamepal as pgp
 from constants import *
-#from battle_loop import battle_mode
+from battle_loop import battle_mode
 
 
 
@@ -20,6 +20,9 @@ from constants import *
                 Waiting_On_Space = False
 
     battle_mode(screen)
+
+if __name__ == "__main__":
+main()
  """
 game_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
