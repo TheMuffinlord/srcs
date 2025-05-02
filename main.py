@@ -5,7 +5,7 @@ from battle_loop import battle_mode
 
 
 
-""" def main():
+def main():
     pygame.init()
     print(f"Screen width: {SCREEN_WIDTH}")
     print(f"Screen height: {SCREEN_HEIGHT}")
@@ -22,9 +22,9 @@ from battle_loop import battle_mode
     battle_mode(screen)
 
 if __name__ == "__main__":
-main()
- """
-game_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
+    main()
+
+'''game_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
 srcs_main = pgp.Game(size=game_size, caption="this space for rent", fps=60, fullscreen=False)
 
@@ -42,4 +42,4 @@ class title_screen(pgp.Scene):
 #this goes last
 title = title_screen(srcs_main)
 srcs_main.currentScene = title
-srcs_main.run()
+srcs_main.run()'''

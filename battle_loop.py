@@ -73,14 +73,6 @@ class SelectionCursor(RootObject): #selection cursor. should move these to other
         if self.in_use == False:
             self.kill()
         
-
-
-        
-
-
-
-
-
 # main battle loop
 
 def battle_mode(screen):

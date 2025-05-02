@@ -89,7 +89,7 @@ class PlayerRobot(RootObject):
         #this works but will need to be replaced once there's, y'know, obstacles
         if self.destination != None:
             degrees = self.find_angle(self.destination)
-            print(f"moving to destination, current rotation {self.rotation}, target angle {degrees}")
+            #print(f"moving to destination, current rotation {self.rotation}, target angle {degrees}")
             if degrees < self.rotation:
                 self.rotate(dt * -1)
             elif degrees > self.rotation:
@@ -115,7 +115,7 @@ class PlayerRobot(RootObject):
         if intact_gear == []:
             self.Unit_Destroyed()
         elif len(intact_gear) >= 1:
-            print(intact_gear)
+            #print(intact_gear)
             while broken == False:
                 break_roll = random.randint(0, 1)
                 broken = self.equipment[break_roll].Get_Broken()
