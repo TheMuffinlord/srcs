@@ -95,9 +95,9 @@ def battle_mode(screen):
     clock = pygame.time.Clock()
     dt = 0
     
-    global offset_x, offset_y, screenmax_x, screenmax_y
-    offset_x = 0
-    offset_y = 0
+    global offset_x, offset_y, screenmax_x, screenmax_y #love too declare globals
+    offset_x = 0 #these work backwards. make sure to invert when adding to things!
+    offset_y = 0 #not sure if i can explain why it's like that. you're pushing the camera around basically
     screenmax_x = SCREEN_WIDTH * 3
     screenmax_y = SCREEN_HEIGHT * 3
     playable_area = pygame.surface.Surface((screenmax_x, screenmax_y))
