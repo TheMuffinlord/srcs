@@ -30,6 +30,7 @@ class RootObject(pygame.sprite.WeakSprite):
         self.movespeed = 0
         self.name = "root object"
         self.can_damage = False
+        self.rect = None
         
 
     def __repr__(self):
@@ -53,6 +54,11 @@ class RootObject(pygame.sprite.WeakSprite):
     def update(self, dt, *args): #some updates have other args. just *args'd it to be safe
         # sub-classes must override
         pass
+
+    def map_edge_check(self, map: pygame.surface.Surface):
+        if self.rect:
+            map_rect = map.get_rect()
+            return map_rect.contains(self.rect)
 
     def Update_rect(self): #in the off chance that the rect isn't synced right this should pass one through
         self.rect = pygame.rect.Rect(self.position.x - (self.radius/2), self.position.y - (self.radius/2), self.radius, self.radius)

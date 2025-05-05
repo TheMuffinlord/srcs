@@ -33,6 +33,7 @@ class PlayerRobot(RootObject):
             PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
         )
         
+        
     def __repr__(self):
         return f"PlayerRobot({self.name}, {self.health}/{self.maxhealth})"
 
@@ -43,13 +44,17 @@ class PlayerRobot(RootObject):
             self.color = "white"
         return pygame.draw.polygon(screen, self.color, self.triangle()) 
 
-    def update(self, dt, EnemyGroup):
+    def update(self, dt, EnemyGroup, surface):
         self.timer -= dt
         self.Equipment_Check()
         self.Find_Target(EnemyGroup)
         self.Fire_At_Will(dt)
-        self.Move_Closer(dt)
-        #self.Update_rect()
+        if self.map_edge_check(surface):
+            self.Move_Closer(dt)
+        else:
+            #find a new destination i guess?
+            pass
+        
         
         
     def Equipment_Check(self):
@@ -73,7 +78,7 @@ class PlayerRobot(RootObject):
             #print(f"too soon for {self.name} to take damage")
         if self.health <= 0:
                 #print("something broke")
-                self.Something_Broke()
+                self.Unit_Destroyed()
 
     
 
@@ -105,7 +110,7 @@ class PlayerRobot(RootObject):
             #print(f"aim rotation: {self.aim_rotation} degrees, body rotation: {self.rotation} degrees")
             self.equipment[1].Start_Shooting(dt, self.aim_rotation, self.position.x, self.position.y, self.radius)
             
-    def Something_Broke(self):
+    '''def Something_Broke(self):
         intact_gear = []
         broken = False
         for item in self.equipment:
@@ -125,7 +130,7 @@ class PlayerRobot(RootObject):
                 f"!!BROKEN!!"
             ]
             break_box = DamageAlertBox(self, break_text)
-            self.health = self.maxhealth
+            self.health = self.maxhealth'''
 
     def Unit_Destroyed(self):
         sad_end = [

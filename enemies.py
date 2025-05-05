@@ -35,10 +35,14 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             self.color = "red"
         return pygame.draw.polygon(screen, self.color, self.triangle())
 
-    def update(self, dt, TargetGroup, BulletGroup):
+    def update(self, dt, TargetGroup, BulletGroup, surface):
 
         self.timer -= dt
         self.Movement_Choice(dt)
+        if self.map_edge_check(surface) != True:
+            print(f"object {self.name} is out of bounds at {self.position.xy}") #i gotta think on how this logic will work, might be messy
+            self.kill()
+            print(f"last behavior: {self.current_movement}, search range: {self.sight_range}")
         self.Find_Target(TargetGroup)
         if self.current_target != None:
             self.current_movement = ValidMovements.FollowEnemy
@@ -126,10 +130,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             r_y = random.randrange(0, SCREEN_HEIGHT)
             angle = math.atan2(self.position.y - r_y, self.position.x - r_x)
             degrees = math.degrees(angle)+90
-            while degrees > 360:
-                degrees -= 360
-            while degrees < 0:
-                degrees += 360
+            degrees = math.remainder(degrees, 360)
             if self.rotation > degrees:
                 self.rotate((dt*-1)/4)
             elif self.rotation < degrees:
@@ -165,7 +166,7 @@ class EnemySpawner(RootObject):
     def draw(self, screen):
         return pygame.draw.polygon(screen, self.color, self.triangle())
     
-    def update(self, dt, TargetGroup, BulletGroup): #will use targetgroup i promise
+    def update(self, dt, TargetGroup, BulletGroup, *args): #will use targetgroup i promise
         self.timer -= dt
         self.spawn_timer -= dt
         #self.Update_rect()

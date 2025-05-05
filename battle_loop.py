@@ -177,9 +177,9 @@ def battle_mode(screen):
 
         for item in loop_updatable:
             if item in PlayerGroup:
-                item.update(dt, EnemyGroup)
+                item.update(dt, EnemyGroup, playable_area)
             elif item in EnemyGroup:
-                item.update(dt, PlayerGroup, BulletGroup)
+                item.update(dt, PlayerGroup, BulletGroup, playable_area)
             else:
                 item.update(dt)
         
