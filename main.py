@@ -1,5 +1,5 @@
 import pygame
-import pygamepal as pgp
+#import pygamepal as pgp  # maybe later, pygame pal
 from constants import *
 from battle_loop import battle_mode
 

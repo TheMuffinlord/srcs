@@ -1,5 +1,5 @@
 import pygame, math, random
-import pygamepal as pgp
+#import pygamepal as pgp # if i can break off some of these into their own thing, might be useful
 from constants import *
 from enum import Enum
 from rootobject import RootObject
@@ -7,6 +7,9 @@ from playerunit import PlayerRobot
 from enemies import EnemyUnit, EnemySpawner
 from equipment import BasicBullet, BasicLaser, Particle
 from textboxes import *
+
+def input_logic(event: pygame.event.Event):
+    pass #i need to think
 
 def kbd_interpreter(pressed_key):
     global PlayerGroup, offset_y, offset_x, screenmax_y, screenmax_x
@@ -134,13 +137,69 @@ def battle_mode(screen):
     mouse_waiting = False
     
     game_running = True
-
+    moving_up = False
+    moving_down = False
+    moving_left = False
+    moving_right = False
+    toggle_unit = None
 
     while game_running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_running = False
-            elif event.type == pygame.KEYDOWN: #going to have to put mouse logic in ehre too
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.event.post(pygame.event.Event(pygame.QUIT))
+                if event.key == pygame.K_1:
+                    toggle_unit = 1
+                if event.key == pygame.K_2:
+                    toggle_unit = 2
+                #extend these for further units. maybe pass just this part to its own class, with a list of the player units?
+                if toggle_unit:
+                    for unit in PlayerGroup:
+                        if unit.unit_number == toggle_unit and unit.alive():
+                            toggle_selection(unit)
+                    toggle_unit = None
+                if event.key == pygame.K_w: #up
+                    moving_up = True
+                if event.key == pygame.K_a: #left
+                    moving_left = True
+                if event.key == pygame.K_s: #down
+                    moving_down = True
+                if event.key == pygame.K_d: #right
+                    moving_right = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_w:
+                    moving_up = False
+                if event.key == pygame.K_a:
+                    moving_left = False
+                if event.key == pygame.K_s:
+                    moving_down = False
+                if event.key == pygame.K_d:
+                    moving_right = False
+            if event.type == pygame.MOUSEBUTTONDOWN: #good enough for now!
+                clicked_location = pygame.mouse.get_pos()
+                clicked_button = pygame.mouse.get_pressed()
+                if clicked_button[0] or clicked_button[1]:
+                    go_here = SelectionCursor(clicked_location[0] + (-1 * offset_x), clicked_location[1] + (-1 * offset_y))
+                    for unit in SelectionGroup:
+                        unit.destination = go_here
+                        toggle_selection(unit) 
+
+        #state checkers for camera movement                    
+        if moving_left == True:
+            if offset_x < 3:
+                offset_x += 3
+        if moving_up == True:
+            if offset_y < 3:
+                offset_y += 3
+        if moving_down == True:
+            if offset_y > (screenmax_y * -1):
+                offset_y -= 3
+        if moving_right == True:
+            if offset_x > (screenmax_x * -1):
+                offset_x -= 3
+            '''elif event.type == pygame.KEYDOWN: #going to have to put mouse logic in ehre too
                 pressed_key = event.key
                 action_waiting = True
                 kbd_waiting = True
@@ -171,7 +230,7 @@ def battle_mode(screen):
                     kbd_waiting = False
                 else: 
                     action_waiting = False
-                    print("some other action took place?")
+                    print("some other action took place?")'''
 
         pygame.Surface.fill(playable_area, "purple")
 
