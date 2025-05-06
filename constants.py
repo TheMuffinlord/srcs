@@ -1,3 +1,5 @@
+from equipment import EngineType, PrimaryWeaponType
+
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 
@@ -44,3 +46,30 @@ BASIC_LASER_LENGTH = 500
 BASIC_LASER_LIFESPAN = 0.4
 BASIC_LASER_DAMAGE = 10
 BASIC_LASER_KNOCKBACK = 0.1
+
+DEFAULT_PLAYERLIST = [
+    {
+        "number": 1,
+        "name": "john character",
+        "equipment" : [
+            EngineType(PLAYER_MOVESPEED, PLAYER_TURN_SPEED),
+            PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
+        ]
+    },
+    {
+        "number": 2,
+        "name": "jane character",
+        "equipment": [
+            EngineType(PLAYER_MOVESPEED, PLAYER_TURN_SPEED),
+            PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
+        ]
+    },
+    {
+        "number": 3,
+        "name": "steve thirdguy",
+        "equipment": [
+            EngineType(PLAYER_MOVESPEED * 2, PLAYER_TURN_SPEED),
+            PrimaryWeaponType(MINIGUN_ARC // 2, MINIGUN_ROF * 0.5),
+        ]
+    }
+]

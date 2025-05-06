@@ -8,8 +8,7 @@ from enemies import EnemyUnit, EnemySpawner
 from equipment import BasicBullet, BasicLaser, Particle
 from textboxes import *
 
-def input_logic(event: pygame.event.Event):
-    pass #i need to think
+
 
 def kbd_interpreter(pressed_key):
     global PlayerGroup, offset_y, offset_x, screenmax_y, screenmax_x
@@ -126,15 +125,32 @@ def battle_mode(screen):
     TextBoxObject.containers = (loop_updatable, loop_drawable)
     Particle.containers = (loop_drawable, loop_updatable)
 
-    Player = PlayerRobot(250, 300, "john character", 1)
-    Player2 = PlayerRobot(250, 650, "jane character", 2)
+    #Player = PlayerRobot(250, 300, "john character", 1)
+    #Player2 = PlayerRobot(250, 650, "jane character", 2)
+    # TIME TO CODE A REALLY BASIC SPAWNER
+    playerlist = DEFAULT_PLAYERLIST
+    p_s_x = 250
+    p_s_y = 250
+    squad = []
+    for unit in playerlist:
+        print(unit)
+        playerunit = PlayerRobot(p_s_x, p_s_y, unit["name"], unit["number"])
+        playerunit.equipment = unit["equipment"]
+        squad.append(playerunit)
+        if p_s_x == 250:
+            p_s_x += 50
+        else:
+            p_s_x = 250
+            p_s_y += 50
+            
     
-    Spawner = EnemySpawner(1500, 500)
-    Spawner2 = EnemySpawner(1800, 900)
 
-    action_waiting = False
-    kbd_waiting = False
-    mouse_waiting = False
+    #Spawner = EnemySpawner(1500, 500)
+    #Spawner2 = EnemySpawner(1800, 900)
+
+    #action_waiting = False
+    #kbd_waiting = False
+    #mouse_waiting = False
     
     game_running = True
     moving_up = False
@@ -154,11 +170,20 @@ def battle_mode(screen):
                     toggle_unit = 1
                 if event.key == pygame.K_2:
                     toggle_unit = 2
+                if event.key == pygame.K_3:
+                    toggle_unit = 3
+                if event.key == pygame.K_4:
+                    toggle_unit = 4
+                if event.key == pygame.K_5:
+                    toggle_unit = 5
+                if event.key == pygame.K_6:
+                    toggle_unit = 6
                 #extend these for further units. maybe pass just this part to its own class, with a list of the player units?
                 if toggle_unit:
                     for unit in PlayerGroup:
                         if unit.unit_number == toggle_unit and unit.alive():
                             toggle_selection(unit)
+                        
                     toggle_unit = None
                 if event.key == pygame.K_w: #up
                     moving_up = True

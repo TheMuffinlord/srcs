@@ -1,9 +1,9 @@
 import pygame, enum, math, random
 
 from rootobject import RootObject, ValidMovements
-from battle_loop import *
-from constants import *
-from equipment import EngineType, PrimaryWeaponType
+#from battle_loop import *
+from constants import PLAYER_RADIUS, PLAYER_HEALTH, PLAYER_DETECTION_RANGE
+#from equipment import EngineType, PrimaryWeaponType
 from textboxes import *
 
 class PlayerRobot(RootObject):
@@ -14,7 +14,7 @@ class PlayerRobot(RootObject):
         self.health = self.maxhealth
         self.movespeed = 0
         self.turnspeed = 0
-        self.rotation_speed = PLAYER_TURN_SPEED * 2
+        self.rotation_speed = self.turnspeed * 2
         self.rotation = 0
         self.aim_rotation = 0
         self.shot_diff = 5
@@ -26,12 +26,13 @@ class PlayerRobot(RootObject):
         self.can_damage = True
         self.name = name
         self.unit_number = unit_number
-        self.sight_range = int(BASIC_BULLET_VELOCITY * BASIC_BULLET_LIFESPAN)
+        self.sight_range = PLAYER_DETECTION_RANGE
         self.selected = False
-        self.equipment = (
+        '''self.equipment = [
             EngineType(PLAYER_MOVESPEED, PLAYER_TURN_SPEED),
             PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
-        )
+        ]'''
+        self.equipment = []
         
         
     def __repr__(self):
@@ -60,7 +61,9 @@ class PlayerRobot(RootObject):
     def Equipment_Check(self):
         self.movespeed = self.equipment[0].move_speed
         self.turnspeed = self.equipment[0].turn_speed
+        self.rotation_speed = self.turnspeed * 2
         self.shot_diff = self.equipment[1].shot_diff
+
 
     def take_damage(self, damage):
         #print(self.timer)

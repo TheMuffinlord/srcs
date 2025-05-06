@@ -1,7 +1,7 @@
 import pygame, math, enum, random
 from constants import *
 from rootobject import RootObject
-from playerunit import *
+#from playerunit import *
 
 
 class BasicLaser(RootObject):
