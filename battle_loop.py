@@ -7,6 +7,7 @@ from playerunit import PlayerRobot
 from enemies import EnemyUnit, EnemySpawner
 from equipment import BasicBullet, BasicLaser, Particle
 from textboxes import *
+from mapgen import Obstacle, map_generator
 
 
 
