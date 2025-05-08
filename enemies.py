@@ -29,11 +29,27 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         self.type = EnemyTypes.EnemyUnit
         self.damage_value = ENEMY_DAMAGE_VALUE
         self.can_damage = True
+        self.last_seen_x = x
+        self.last_seen_y = y
+        self.pinged = False
 
     def draw(self, screen):
-        if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
-            self.color = "red"
-        return pygame.draw.polygon(screen, self.color, self.triangle())
+        if self.pinged == True:
+            if self.color == "white" and self.timer < HIT_COOLDOWN - 0.1:
+                self.color = "red"
+            self.last_seen_x = self.position.x
+            self.last_seen_y = self.position.y
+            self.pinged = False
+            return pygame.draw.polygon(screen, self.color, self.triangle())
+        else:
+            actual_pos = self.position.xy
+            self.position.x = self.last_seen_x + random.randint(-20, 20)
+            self.position.y = self.last_seen_y + random.randint(-20, 20)
+            fake_triangle = self.triangle()
+            self.position.xy = actual_pos
+            return pygame.draw.polygon(screen, self.color, fake_triangle, 2)
+            
+
 
     def update(self, dt, TargetGroup, BulletGroup, surface):
 

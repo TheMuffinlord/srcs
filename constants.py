@@ -33,25 +33,32 @@ DEFAULT_PLAYERLIST = [
     {
         "number": 1,
         "name": "john character",
-        "equipment" : [
-            Engine(1),
-            Weapon_Minigun(1),
-        ]
+        "equipment" : {
+            "engine": Engine(1),
+            "weapons": [
+                Weapon_Minigun(1),
+                Weapon_Laser(1),
+            ]
+        }
     },
     {
         "number": 2,
         "name": "jane character",
-        "equipment": [
-            Engine(2),
-            Weapon_Minigun(2)
-        ]
+        "equipment": {
+            "engine": Engine(2),
+            "weapons": [
+                Weapon_Minigun(2),
+            ]
+        }
     },
     {
         "number": 3,
         "name": "steve thirdguy",
-        "equipment": [
-            Engine(1),
-            Weapon_Laser(1),
-        ]
+        "equipment": {
+            "engine": Engine(1),
+            "weapons": [
+                Weapon_Laser(1),
+            ]
+        }
     }
 ]

@@ -32,7 +32,7 @@ class PlayerRobot(RootObject):
             EngineType(PLAYER_MOVESPEED, PLAYER_TURN_SPEED),
             PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
         ]'''
-        self.equipment = []
+        self.equipment = {}
         
         
     def __repr__(self):
@@ -43,6 +43,7 @@ class PlayerRobot(RootObject):
             self.color = "orange"
         else:
             self.color = "white"
+        pygame.draw.circle(screen, "lightblue", self.position.xy, self.sight_range, 1)
         return pygame.draw.polygon(screen, self.color, self.triangle()) 
 
     def update(self, dt, EnemyGroup, surface):
@@ -59,8 +60,8 @@ class PlayerRobot(RootObject):
         
         
     def Equipment_Check(self):
-        self.movespeed = self.equipment[0].move_speed
-        self.turnspeed = self.equipment[0].turn_speed
+        self.movespeed = self.equipment["engine"].move_speed
+        self.turnspeed = self.equipment["engine"].turn_speed
         self.rotation_speed = self.turnspeed * 2
         #self.shot_diff = self.equipment[1].shot_diff
 
@@ -111,7 +112,8 @@ class PlayerRobot(RootObject):
         if self.current_target != None:
             self.aim_rotate(dt)
             #print(f"aim rotation: {self.aim_rotation} degrees, body rotation: {self.rotation} degrees")
-            self.equipment[1].Start_Shooting(dt, self.aim_rotation, self.position.x, self.position.y, self.radius)
+            for weapon in self.equipment["weapons"]:
+                weapon.Start_Shooting(dt, self.aim_rotation, self.position.x, self.position.y, self.radius)
             
     '''def Something_Broke(self):
         intact_gear = []

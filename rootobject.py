@@ -30,7 +30,8 @@ class RootObject(pygame.sprite.WeakSprite):
         self.movespeed = 0
         self.name = "root object"
         self.can_damage = False
-        self.rect = None
+        self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
+        #rect gets overdrawn almost immediately. needed for map loader
         
 
     def __repr__(self):
@@ -60,8 +61,10 @@ class RootObject(pygame.sprite.WeakSprite):
             map_rect = map.get_rect()
             return map_rect.contains(self.rect)
 
-    def Update_rect(self): #in the off chance that the rect isn't synced right this should pass one through
-        self.rect = pygame.rect.Rect(self.position.x - (self.radius/2), self.position.y - (self.radius/2), self.radius, self.radius)
+    #def Update_rect(self): #in the off chance that the rect isn't synced right this should pass one through
+        #self.rect = pygame.rect.Rect(self.position.x - (self.radius/2), self.position.y - (self.radius/2), self.radius, self.radius)
+    #don't think this works. returning rects is fine for most classes, set an initial rect to radius
+
 
     def collision(self, object): #basic circle collision works in most things
         #override if necessary
@@ -102,6 +105,7 @@ class RootObject(pygame.sprite.WeakSprite):
         if len(valid_targets) > 0:
             c_distance = float('inf')
             for target in valid_targets:
+                target.pinged = True
                 #print(f"target found: {target.name}")
                 target_dist = pygame.math.Vector2.distance_to(pygame.Vector2(target.position.x, target.position.y), self.position)
                 if target_dist < c_distance:                      
@@ -111,3 +115,5 @@ class RootObject(pygame.sprite.WeakSprite):
         if len(valid_targets) == 0:
             #print(EnemyGroup)
             self.current_target = None
+
+    
