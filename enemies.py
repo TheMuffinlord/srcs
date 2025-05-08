@@ -43,8 +43,8 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             return pygame.draw.polygon(screen, self.color, self.triangle())
         else:
             actual_pos = self.position.xy
-            self.position.x = self.last_seen_x + random.randint(-20, 20)
-            self.position.y = self.last_seen_y + random.randint(-20, 20)
+            self.position.x = self.position.x + random.randint(-20, 20)
+            self.position.y = self.position.y + random.randint(-20, 20)
             fake_triangle = self.triangle()
             self.position.xy = actual_pos
             return pygame.draw.polygon(screen, self.color, fake_triangle, 2)
