@@ -1,13 +1,10 @@
-from equipment import EngineType, PrimaryWeaponType
+from equipment import Engine, Weapon_Minigun, Weapon_Laser
 
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 
 SELECTION_RADIUS = 50
 SELECTION_DECAY_TIMER = 5
-
-PARTICLE_DECAY = 0.25
-PARTICLE_SPEED = 50
 
 DAMAGE_ALERT_LIFESPAN = 1
 DAMAGE_ALERT_WIDTH = 80
@@ -17,8 +14,7 @@ HIT_COOLDOWN = 0.25
 
 PLAYER_RADIUS = 25
 PLAYER_HEALTH = 1500
-PLAYER_MOVESPEED = 100
-PLAYER_TURN_SPEED = 150
+
 PLAYER_DETECTION_RANGE = 500 
 
 ENEMY_RADIUS = 10
@@ -31,45 +27,31 @@ ENEMY_DAMAGE_VALUE = 25
 SPAWN_COOLDOWN = 0.5
 SPAWNER_MULTIPLIER = 500
 
-BASIC_BULLET_RADIUS = 3
-BASIC_BULLET_VELOCITY = 800
-BASIC_BULLET_DAMAGE = 6
-BASIC_BULLET_LIFESPAN = 0.7
-BASIC_BULLET_KNOCKBACK = 1
 
-MINIGUN_ARC = 30
-LASER_ARC = 0
-LASER_ROF = 0.5
-MINIGUN_ROF = 0.005
-
-BASIC_LASER_LENGTH = 500
-BASIC_LASER_LIFESPAN = 0.4
-BASIC_LASER_DAMAGE = 10
-BASIC_LASER_KNOCKBACK = 0.1
 
 DEFAULT_PLAYERLIST = [
     {
         "number": 1,
         "name": "john character",
         "equipment" : [
-            EngineType(PLAYER_MOVESPEED, PLAYER_TURN_SPEED),
-            PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
+            Engine(1),
+            Weapon_Minigun(1),
         ]
     },
     {
         "number": 2,
         "name": "jane character",
         "equipment": [
-            EngineType(PLAYER_MOVESPEED, PLAYER_TURN_SPEED),
-            PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
+            Engine(2),
+            Weapon_Minigun(2)
         ]
     },
     {
         "number": 3,
         "name": "steve thirdguy",
         "equipment": [
-            EngineType(PLAYER_MOVESPEED * 2, PLAYER_TURN_SPEED),
-            PrimaryWeaponType(MINIGUN_ARC // 2, MINIGUN_ROF * 0.5),
+            Engine(1),
+            Weapon_Laser(1),
         ]
     }
 ]

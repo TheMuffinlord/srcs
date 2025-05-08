@@ -62,7 +62,7 @@ class PlayerRobot(RootObject):
         self.movespeed = self.equipment[0].move_speed
         self.turnspeed = self.equipment[0].turn_speed
         self.rotation_speed = self.turnspeed * 2
-        self.shot_diff = self.equipment[1].shot_diff
+        #self.shot_diff = self.equipment[1].shot_diff
 
 
     def take_damage(self, damage):

@@ -1,6 +1,6 @@
 import pygame, math, random
 #import pygamepal as pgp # if i can break off some of these into their own thing, might be useful
-from constants import *
+from constants import SELECTION_RADIUS, SELECTION_DECAY_TIMER, SCREEN_HEIGHT, SCREEN_WIDTH
 from enum import Enum
 from rootobject import RootObject
 from playerunit import PlayerRobot
@@ -146,8 +146,8 @@ def battle_mode(screen):
             
     
 
-    #Spawner = EnemySpawner(1500, 500)
-    #Spawner2 = EnemySpawner(1800, 900)
+    Spawner = EnemySpawner(1500, 500)
+    Spawner2 = EnemySpawner(1800, 900)
 
     #action_waiting = False
     #kbd_waiting = False

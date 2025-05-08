@@ -1,6 +1,6 @@
 import pygame
 #import pygamepal as pgp  # maybe later, pygame pal
-from constants import *
+from constants import SCREEN_HEIGHT, SCREEN_WIDTH
 from battle_loop import battle_mode
 
 
