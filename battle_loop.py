@@ -7,7 +7,7 @@ from playerunit import PlayerRobot
 from enemies import EnemyUnit, EnemySpawner
 from equipment import BasicBullet, BasicLaser, Particle
 from textboxes import *
-from mapgen import Obstacle, map_generator
+from mapgen import Obstacle, GroundTile, tmx_generator
 
 
 
@@ -95,16 +95,6 @@ class SelectionCursor(RootObject): #selection cursor. should move these to other
 # main battle loop
 
 def battle_mode(screen):
-    clock = pygame.time.Clock()
-    dt = 0
-    
-    global offset_x, offset_y, screenmax_x, screenmax_y #love too declare globals
-    offset_x = 0 #these work backwards. make sure to invert when adding to things!
-    offset_y = 0 #not sure if i can explain why it's like that. you're pushing the camera around basically
-    screenmax_x = SCREEN_WIDTH * 3
-    screenmax_y = SCREEN_HEIGHT * 3
-    playable_area = pygame.surface.Surface((screenmax_x, screenmax_y))
-
     #create the map, populate with units
 
     loop_updatable = pygame.sprite.Group()
@@ -125,29 +115,41 @@ def battle_mode(screen):
     SelectionCursor.containers = (loop_updatable, loop_drawable, SelectionGroup)
     TextBoxObject.containers = (loop_updatable, loop_drawable)
     Particle.containers = (loop_drawable, loop_updatable)
+    GroundTile.containers = (loop_drawable)
 
     #Player = PlayerRobot(250, 300, "john character", 1)
     #Player2 = PlayerRobot(250, 650, "jane character", 2)
     # TIME TO CODE A REALLY BASIC SPAWNER
+    
+    clock = pygame.time.Clock()
+    dt = 0
+    battle_map = tmx_generator("maps/testmap_01.tmx")
+    global offset_x, offset_y, screenmax_x, screenmax_y #love too declare globals
+    offset_x = 0 #these work backwards. make sure to invert when adding to things!
+    offset_y = 0 #not sure if i can explain why it's like that. you're pushing the camera around basically
+    screenmax_x = battle_map["mapsize_x"]
+    screenmax_y = battle_map["mapsize_y"]
+    playable_area = pygame.surface.Surface((screenmax_x, screenmax_y))
+
     playerlist = DEFAULT_PLAYERLIST
-    p_s_x = 250
-    p_s_y = 250
+    p_s_x = battle_map["spawn"][0]
+    p_s_y = battle_map["spawn"][1]
     squad = []
     for unit in playerlist:
         print(unit)
         playerunit = PlayerRobot(p_s_x, p_s_y, unit["name"], unit["number"])
         playerunit.equipment = unit["equipment"]
         squad.append(playerunit)
-        if p_s_x == 250:
+        if p_s_x == battle_map["spawn"][0]:
             p_s_x += 50
         else:
-            p_s_x = 250
+            p_s_x = battle_map["spawn"][0]
             p_s_y += 50
             
     
 
-    Spawner = EnemySpawner(1500, 500)
-    Spawner2 = EnemySpawner(1800, 900)
+    #Spawner = EnemySpawner(1500, 500)
+    #Spawner2 = EnemySpawner(1800, 900)
 
     #action_waiting = False
     #kbd_waiting = False
@@ -258,7 +260,7 @@ def battle_mode(screen):
                     action_waiting = False
                     print("some other action took place?")'''
 
-        pygame.Surface.fill(playable_area, "purple")
+        #pygame.Surface.fill(playable_area, "purple")
 
         for item in loop_updatable:
             if item in PlayerGroup:

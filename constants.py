@@ -47,7 +47,7 @@ DEFAULT_PLAYERLIST = [
         "equipment": {
             "engine": Engine(2),
             "weapons": [
-                Weapon_Minigun(2),
+                Weapon_Minigun(4),
             ]
         }
     },

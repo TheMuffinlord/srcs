@@ -1,5 +1,6 @@
 import pygame, math, enum, random
-#from constants import BASIC_BULLET_DAMAGE, BASIC_BULLET_KNOCKBACK, BASIC_BULLET_LIFESPAN, BASIC_BULLET_RADIUS, BASIC_BULLET_VELOCITY, BASIC_LASER_DAMAGE, BASIC_LASER_KNOCKBACK, BASIC_LASER_LENGTH, BASIC_LASER_LIFESPAN, PLAYER_MOVESPEED, PLAYER_TURN_SPEED, PARTICLE_DECAY, PARTICLE_SPEED, MINIGUN_ARC, MINIGUN_ROF, LASER_ROF
+#from constants import BASIC_BULLET_DAMAGE, BASIC_BULLET_KNOCKBACK, BASIC_BULLET_LIFESPAN, BASIC_BULLET_RADIUS, BASIC_BULLET_VELOCITY, BASIC_LASER_DAMAGE, BASIC_LASER_KNOCKBACK, BASIC_LASER_LENGTH, 
+# BASIC_LASER_LIFESPAN, PLAYER_MOVESPEED, PLAYER_TURN_SPEED, PARTICLE_DECAY, PARTICLE_SPEED, MINIGUN_ARC, MINIGUN_ROF, LASER_ROF
 from rootobject import RootObject
 
 #from playerunit import *
@@ -27,7 +28,7 @@ PARTICLE_DECAY = 0.25
 PARTICLE_SPEED = 50
 
 class BasicLaser(RootObject):
-    def __init__(self, x, y, rotation):
+    def __init__(self, x, y, rotation, level):
         super().__init__(x, y, BASIC_BULLET_RADIUS * 3)
         self.beam_length = BASIC_LASER_LENGTH
         #self.velocity = self.position + r_vector * self.beam_length
@@ -80,9 +81,10 @@ class BasicLaser(RootObject):
         
 
 class BasicBullet(RootObject):
-    def __init__(self, x, y, velocity):
+    def __init__(self, x, y, velocity, level):
         super().__init__(x, y, BASIC_BULLET_RADIUS)
         self.velocity = velocity
+
         self.damage = BASIC_BULLET_DAMAGE
         self.timer = BASIC_BULLET_LIFESPAN
         self.color = "yellow"
@@ -145,10 +147,25 @@ class Engine():
 class Weapon_Minigun():
     def __init__(self, level):
         self.level = level
-        if level > 0:
-            self.shot_diff = MINIGUN_ARC
-            self.rate_of_fire = MINIGUN_ROF
-        
+        match self.level:
+            case 1:
+                self.rate_of_fire = MINIGUN_ROF
+                self.shot_diff = MINIGUN_ARC
+                self.num_shots = 1
+            case 2:
+                self.rate_of_fire = MINIGUN_ROF
+                self.shot_diff = MINIGUN_ARC
+                self.num_shots = 2
+            case 3:
+                self.rate_of_fire = MINIGUN_ROF
+                self.shot_diff = MINIGUN_ARC // 2
+                self.num_shots = 2
+            case 4:
+                self.rate_of_fire = MINIGUN_ROF / 2
+                self.shot_diff = MINIGUN_ARC // 2
+                self.num_shots = 3
+                
+                
         self.timer = 0
         self.weapontype = "minigun"
     
@@ -162,11 +179,12 @@ class Weapon_Minigun():
 
     def Start_Shooting(self, dt, rotation, unit_x, unit_y, radius):
         if self.timer <= 0:
-            bullet_spread = random.randrange((self.shot_diff * -1), self.shot_diff)
-            forward = pygame.Vector2(0, 1).rotate(rotation + bullet_spread)
-            b_x = unit_x + forward.x * radius
-            b_y = unit_y + forward.y * radius
-            bullet = BasicBullet(b_x, b_y, forward * BASIC_BULLET_VELOCITY)
+            for shot in range(self.num_shots):
+                bullet_spread = random.randrange((self.shot_diff * -1), self.shot_diff)
+                forward = pygame.Vector2(0, 1).rotate(rotation + bullet_spread)
+                b_x = unit_x + forward.x * radius
+                b_y = unit_y + forward.y * radius
+                bullet = BasicBullet(b_x, b_y, forward * BASIC_BULLET_VELOCITY, self.level)
             self.timer = self.rate_of_fire
         self.timer -= dt
 
@@ -188,6 +206,6 @@ class Weapon_Laser():
 
     def Start_Shooting(self, dt, rotation, unit_x, unit_y, *args):
         if self.timer <= 0:
-            laser = BasicLaser(unit_x, unit_y, rotation)
+            laser = BasicLaser(unit_x, unit_y, rotation, self.level)
             self.timer = self.rate_of_fire
         self.timer -= dt
