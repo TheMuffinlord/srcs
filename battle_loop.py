@@ -196,6 +196,8 @@ def battle_mode(screen):
                     moving_down = True
                 if event.key == pygame.K_d: #right
                     moving_right = True
+                if event.key == pygame.K_z: #dump offsets
+                    print(f"camera offsets: ({offset_x, offset_y}), screen edges should be (0, 0), ({screenmax_x * -1 + SCREEN_WIDTH}, {screenmax_y * -1 + SCREEN_HEIGHT})")
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
                     moving_up = False
@@ -222,10 +224,10 @@ def battle_mode(screen):
             if offset_y < 3:
                 offset_y += 3
         if moving_down == True:
-            if offset_y > (screenmax_y * -1):
+            if offset_y > (screenmax_y * -1) + SCREEN_HEIGHT:
                 offset_y -= 3
         if moving_right == True:
-            if offset_x > (screenmax_x * -1):
+            if offset_x > (screenmax_x * -1) + SCREEN_WIDTH:
                 offset_x -= 3
             '''elif event.type == pygame.KEYDOWN: #going to have to put mouse logic in ehre too
                 pressed_key = event.key
