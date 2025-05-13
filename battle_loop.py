@@ -11,7 +11,7 @@ from mapgen import Obstacle, GroundTile, tmx_generator
 
 
 
-def kbd_interpreter(pressed_key):
+'''def kbd_interpreter(pressed_key):
     global PlayerGroup, offset_y, offset_x, screenmax_y, screenmax_x
     toggle_unit = 0
     match(pressed_key):
@@ -37,7 +37,7 @@ def kbd_interpreter(pressed_key):
                 print(f"x offset now {offset_x}")
     for unit in PlayerGroup:
         if unit.unit_number == toggle_unit:
-            toggle_selection(unit)
+            toggle_selection(unit)'''
         
 
 def toggle_selection(unit):
@@ -51,14 +51,14 @@ def toggle_selection(unit):
         SelectionGroup.add(unit)
         unit.selected = True
     
-def mouse_interpreter(clicked_position, clicked_button):
+'''def mouse_interpreter(clicked_position, clicked_button):
     global SelectionGroup, offset_x, offset_y
     if clicked_button[0] or clicked_button[1]:
         go_here = SelectionCursor(clicked_position[0] + (-1 * offset_x), clicked_position[1] + (-1 * offset_y))
         for unit in SelectionGroup:
             unit.destination = go_here
             print(f"setting {unit.name} destination to {unit.destination.position}")
-            toggle_selection(unit)        
+            toggle_selection(unit)    '''    
 
 # classes go in here
 
