@@ -84,7 +84,7 @@ def tmx_generator(tmx_file):
         props = levelmap.get_tile_properties(x, y, 0)
         name = props["type"]
         name = name.rstrip("1234567890")
-        print(name)
+        #print(name)
         new_x = x * tw
         new_y = y * th
         newtile = GroundTile(new_x, new_y, name, image)
