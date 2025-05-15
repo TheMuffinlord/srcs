@@ -2,13 +2,14 @@ import pygame, pytmx
 from rootobject import RootObject
 
 class GroundTile(pygame.sprite.Sprite):
-    def __init__(self, x, y, surface_type, image: pygame.surface.Surface):
+    def __init__(self, x, y, width, height, surface_type, image: pygame.surface.Surface):
         if hasattr(self, "containers"):
             super().__init__(self.containers)
         else:
             super().__init__()
-        self.x = x
-        self.y = y
+        self._pos = (x * width, y * height)
+        self.row = y
+        self.col = x
         self.surface_type = surface_type
         if self.surface_type == "grass" or self.surface_type == "dirt":
             self.passable = True
@@ -19,7 +20,7 @@ class GroundTile(pygame.sprite.Sprite):
 
     def draw(self, surface):
         #print("ground tile drawing")
-        surface.blit(self.image, (self.x, self.y), self.rect)
+        surface.blit(self.image, self._pos, self.rect)
         return self.rect
 
 class Obstacle(RootObject):
@@ -76,6 +77,7 @@ def tmx_generator(tmx_file):
         "mapsize_y": mapsize_y,
         "ground": [],
         "objects": [],
+        "nodegraph": [],
     }
     for tile in ground:
         x = tile[0]
@@ -85,11 +87,27 @@ def tmx_generator(tmx_file):
         name = props["type"]
         name = name.rstrip("1234567890")
         #print(name)
-        new_x = x * tw
-        new_y = y * th
-        newtile = GroundTile(new_x, new_y, name, image)
+        #new_x = x * tw
+        #new_y = y * th
+        newtile = GroundTile(x, y, tw, th, name, image)
         #print(f"drawing ground tile at ({new_x}, {new_y}) using image {image}")
         mapdict["ground"].append(newtile)
-
     
+    return pathnode_generator(mapdict)
+
+def pathnode_generator(mapdict: dict):
+    nodegraph = []
+    c_graph = []
+    c_row = 0
+    for tile in mapdict["ground"]:
+        if tile.row != c_row:
+            nodegraph.append(c_graph)
+            c_row = tile.row
+            c_graph = []
+        c_graph.append(tile.passable)
+    nodegraph.append(c_graph)
+    mapdict["nodegraph"] = nodegraph
     return mapdict
+            
+        
+
