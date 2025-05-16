@@ -75,6 +75,8 @@ def tmx_generator(tmx_file):
         "spawn": (spawnpoint.x*2, spawnpoint.y*2),
         "mapsize_x": mapsize_x,
         "mapsize_y": mapsize_y,
+        "tilewidth": tw,
+        "tileheight": th,
         "ground": [],
         "objects": [],
         "nodegraph": [],

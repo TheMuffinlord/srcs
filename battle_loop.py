@@ -2,7 +2,7 @@ import pygame, math, random
 #import pygamepal as pgp # if i can break off some of these into their own thing, might be useful
 from constants import SELECTION_RADIUS, SELECTION_DECAY_TIMER, SCREEN_HEIGHT, SCREEN_WIDTH
 from enum import Enum
-from rootobject import RootObject
+from rootobject import RootObject, PingObject
 from playerunit import PlayerRobot
 from enemies import EnemyUnit, EnemySpawner
 from equipment import BasicBullet, BasicLaser, Particle
@@ -115,6 +115,7 @@ def battle_mode(screen):
     SelectionCursor.containers = (loop_updatable, loop_drawable, SelectionGroup)
     TextBoxObject.containers = (loop_updatable, loop_drawable)
     Particle.containers = (loop_drawable, loop_updatable)
+    PingObject.containers = (loop_drawable, loop_updatable)
     GroundTile.containers = (loop_drawable)
 
     #Player = PlayerRobot(250, 300, "john character", 1)
@@ -212,9 +213,14 @@ def battle_mode(screen):
                 clicked_button = pygame.mouse.get_pressed()
                 if clicked_button[0] or clicked_button[1]:
                     go_here = SelectionCursor(clicked_location[0] + (-1 * offset_x), clicked_location[1] + (-1 * offset_y))
-                    for unit in SelectionGroup:
-                        unit.destination = go_here
-                        toggle_selection(unit) 
+                    if clicked_button[0]:
+                        for unit in SelectionGroup:
+                            unit.destination.append(go_here.position.xy)
+                            toggle_selection(unit) 
+                    elif clicked_button[1]:
+                        for unit in SelectionGroup:
+                            unit.find_a_path(battle_map, go_here)
+                            toggle_selection(unit)
 
         #state checkers for camera movement                    
         if moving_left == True:
@@ -266,7 +272,7 @@ def battle_mode(screen):
 
         for item in loop_updatable:
             if item in PlayerGroup:
-                item.update(dt, EnemyGroup, playable_area)
+                item.update(dt, EnemyGroup, playable_area, battle_map)
             elif item in EnemyGroup:
                 item.update(dt, PlayerGroup, BulletGroup, playable_area)
             else:

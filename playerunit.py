@@ -21,13 +21,15 @@ class PlayerRobot(RootObject):
         self.timer = 0
         self.color = "white"
         self.current_movement = ValidMovements.StandStill
-        self.destination = None
+        self.destination = []
         self.current_target = None
         self.can_damage = True
         self.name = name
         self.unit_number = unit_number
         self.sight_range = PLAYER_DETECTION_RANGE
         self.selected = False
+        self.in_transit = False
+        self.next_node = None
         '''self.equipment = [
             EngineType(PLAYER_MOVESPEED, PLAYER_TURN_SPEED),
             PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
@@ -46,13 +48,13 @@ class PlayerRobot(RootObject):
         pygame.draw.circle(screen, "lightblue", self.position.xy, self.sight_range, 1)
         return pygame.draw.polygon(screen, self.color, self.triangle()) 
 
-    def update(self, dt, EnemyGroup, surface):
+    def update(self, dt, EnemyGroup, surface, mapdict):
         self.timer -= dt
         self.Equipment_Check()
         self.Find_Target(EnemyGroup)
         self.Fire_At_Will(dt)
         if self.map_edge_check(surface):
-            self.Move_Closer(dt)
+            self.Move_Closer(dt, mapdict)
         else:
             #find a new destination i guess?
             pass
@@ -94,19 +96,33 @@ class PlayerRobot(RootObject):
             self.aim_rotation += self.rotation_speed * dt
         #print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
        
-    def Move_Closer(self, dt):
+    def Move_Closer(self, dt, mapdict):
         #this works but will need to be replaced once there's, y'know, obstacles
-        if self.destination != None:
-            degrees = self.find_angle(self.destination)
-            #print(f"moving to destination, current rotation {self.rotation}, target angle {degrees}")
-            if degrees < self.rotation:
-                self.rotate(dt * -1)
-            elif degrees > self.rotation:
-                self.rotate(dt)
-            if self.collision_rough(self.destination) == False:
+        if self.destination != []:
+            if self.next_node == None:
+                print(f"path list: {self.destination}")
+                next_spot = self.destination.pop()
+                nn_x = next_spot[0]
+                nn_y = next_spot[1]
+                print(f"next node created at {nn_x, nn_y}")
+                self.next_node = RootObject(nn_x, nn_y, 2)
+        if self.next_node != None:
+            degrees = self.find_angle(self.next_node)
+        #print(f"moving to destination, current rotation {self.rotation}, target angle {degrees}")
+            #if degrees < self.rotation:
+                #self.rotate(dt * -1)
+            #elif degrees > self.rotation:
+                #self.rotate(dt)
+            self.rotation = degrees
+            
+            if self.grid_oob(mapdict) == False:
+                g_pos = self.grid_position(mapdict)
+                print(f"ah shit we went out of bounds on grid square {g_pos}")
+            if self.collision_rough(self.next_node) == False:
                 self.move(dt)
             else:
-                self.destination = None
+                self.next_node = None
+    
         
     def Fire_At_Will(self, dt):
         if self.current_target != None:

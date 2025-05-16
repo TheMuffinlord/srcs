@@ -1,4 +1,4 @@
-import pygame, math, random
+import pygame, math, random, queue
 from enum import Enum
 
 class ValidMovements(Enum): #starting to think these might be a mistake. maybe simplify? maybe use for actual movement functions?
@@ -30,6 +30,7 @@ class RootObject(pygame.sprite.WeakSprite):
         self.movespeed = 0
         self.name = "root object"
         self.can_damage = False
+        self.destination = []
         self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
         #rect gets overdrawn almost immediately. needed for map loader
         
@@ -116,4 +117,93 @@ class RootObject(pygame.sprite.WeakSprite):
             #print(EnemyGroup)
             self.current_target = None
 
+    def find_a_path(self, mapdict, target):
+        #todo: extract the node graph from the map when i call this. no reason to bring all the images and shit along
+        #gist: rough out the current "node" and the target "node" then do all the pathfinding in between. return a list of destinations to go through
+        s_node_x = int(self.position.x // mapdict["tilewidth"])
+        s_node_y = int(self.position.y // mapdict["tileheight"])
+        t_node_x = int(target.position.x // mapdict["tilewidth"])
+        t_node_y = int(target.position.y // mapdict["tileheight"])
+        target_node = (t_node_x, t_node_y)
+        #a lot of this is red blob games code i'll freely admit.
+        #right now this pathfinds okay but it gets caught up on obstacles.
+        #will probably work smoother when i make an actual graph out of my node chart
+        startnode = (s_node_x, s_node_y)
+        print(f"start node: {startnode}, end node: {target_node}")
+        frontier = queue.Queue()
+        frontier.put(startnode)
+        path_to_target = {}
+        path_to_target[startnode] = None
+        
+        while not frontier.empty():
+            current = frontier.get()
+            #print(f"current: {current}")
+            if current[0] <= 0:
+                c_x_min = 0
+                c_x_max = current[0]+2
+            elif current[0] >= len(mapdict["nodegraph"][0]):
+                c_x_min = current[0]-1
+                c_x_max = current[0]
+            else:
+                c_x_min = current[0]-1
+                c_x_max = current[0]+2
+            if current[1] <= 0:
+                c_y_min = 0
+                c_y_max = current[1]+2
+            elif current[1] >= len(mapdict["nodegraph"]):
+                c_y_min = current[1]-1
+                c_y_max = current[1]
+            else:
+                c_y_min = current[1]-1
+                c_y_max = current[1]+2
+            if current == target_node:
+                break
+            for x in range(c_x_min, c_x_max):
+                for y in range(c_y_min, c_y_max):
+                    next = (x, y)
+                    if next not in path_to_target:
+                        if mapdict["nodegraph"][next[1]][next[0]] == True:
+                            frontier.put(next)
+                            path_to_target[next] = current
+        pathnode = target_node
+        pathway = []
+        pathway.append(target.position.xy)
+        while pathnode != startnode:
+            fixed_pathnode = (pathnode[0] * mapdict["tilewidth"], pathnode[1] * mapdict["tileheight"])
+            if mapdict["nodegraph"][pathnode[1]][pathnode[0]] == True:
+                pathway.append(fixed_pathnode)
+            pathnode = path_to_target[pathnode]
+        path_pings = []
+        for p in pathway:
+            path_pings.append(PingObject(p[0], p[1]))
+        #print(f"pathfinding complete, here's the results:\n----------\n{pathway}\n----------\nfull grid:\n==========\n{path_to_target}")
+        self.destination = pathway
+        self.in_transit = False
+
+    def grid_position(self, mapdict):
+        s_node_x = int(self.position.x // mapdict["tilewidth"])
+        s_node_y = int(self.position.y // mapdict["tileheight"])
+        return (s_node_x, s_node_y)
     
+    def grid_oob(self, mapdict):
+        g_pos = self.grid_position(mapdict)
+        return mapdict["nodegraph"][g_pos[1]][g_pos[0]]
+    
+    def grid_distance(self, target, mapdict):
+        s_grid = self.grid_position(mapdict)
+        t_grid = target.grid_position(mapdict)
+        return abs(s_grid[0] - t_grid[0]) + abs(s_grid[1] - t_grid[1])
+
+class PingObject(RootObject):
+    def __init__(self, x, y):
+        super().__init__(x, y, 32)
+        self.timer = 1
+        self.color = "blue"
+
+    def draw(self, screen):
+        pygame.draw.circle(screen, self.color, self.position, self.radius, 3)
+
+    def update(self, dt):
+        self.timer -= dt
+        if self.timer <= 0:
+            self.kill()
