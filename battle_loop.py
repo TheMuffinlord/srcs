@@ -215,12 +215,12 @@ def battle_mode(screen):
                     go_here = SelectionCursor(clicked_location[0] + (-1 * offset_x), clicked_location[1] + (-1 * offset_y))
                     if clicked_button[0]:
                         for unit in SelectionGroup:
-                            unit.destination.append(go_here.position.xy)
-                            toggle_selection(unit) 
-                    elif clicked_button[1]:
-                        for unit in SelectionGroup:
+                            #unit.destination.append(go_here.position.xy)
                             unit.find_a_path(battle_map, go_here)
                             toggle_selection(unit)
+                    elif clicked_button[1]:
+                        #dunno what this button will do
+                        pass
 
         #state checkers for camera movement                    
         if moving_left == True:

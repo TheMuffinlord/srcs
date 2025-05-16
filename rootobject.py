@@ -119,16 +119,13 @@ class RootObject(pygame.sprite.WeakSprite):
 
     def find_a_path(self, mapdict, target):
         #todo: extract the node graph from the map when i call this. no reason to bring all the images and shit along
-        #gist: rough out the current "node" and the target "node" then do all the pathfinding in between. return a list of destinations to go through
-        s_node_x = int(self.position.x // mapdict["tilewidth"])
-        s_node_y = int(self.position.y // mapdict["tileheight"])
-        t_node_x = int(target.position.x // mapdict["tilewidth"])
-        t_node_y = int(target.position.y // mapdict["tileheight"])
-        target_node = (t_node_x, t_node_y)
+        #gist: rough out the current "node" and the target "node" then do all the pathfinding in between,
+        #then return a list of destinations to go through.
         #a lot of this is red blob games code i'll freely admit.
         #right now this pathfinds okay but it gets caught up on obstacles.
         #will probably work smoother when i make an actual graph out of my node chart
-        startnode = (s_node_x, s_node_y)
+        startnode = self.grid_position(mapdict)
+        target_node = target.grid_position(mapdict)
         print(f"start node: {startnode}, end node: {target_node}")
         frontier = queue.Queue()
         frontier.put(startnode)
