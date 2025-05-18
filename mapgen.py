@@ -79,7 +79,8 @@ def tmx_generator(tmx_file):
         "tileheight": th,
         "ground": [],
         "objects": [],
-        "nodegraph": [],
+        "nodegrid": [],
+        "nodegraph": {},
     }
     for tile in ground:
         x = tile[0]
@@ -98,16 +99,29 @@ def tmx_generator(tmx_file):
     return pathnode_generator(mapdict)
 
 def pathnode_generator(mapdict: dict):
-    nodegraph = []
+    nodegrid = []
     c_graph = []
+    nodegraph = {}
     c_row = 0
     for tile in mapdict["ground"]:
         if tile.row != c_row:
-            nodegraph.append(c_graph)
+            nodegrid.append(c_graph)
             c_row = tile.row
             c_graph = []
         c_graph.append(tile.passable)
-    nodegraph.append(c_graph)
+    nodegrid.append(c_graph)
+    for row in range(len(nodegrid)):
+        for col in range(len(nodegrid[row])):
+            neighbors = []
+            for x in range(-1, 2):
+                for y in range(-1, 2):
+                    try:
+                        if nodegrid[row+y][col+x] == True and (x != 0 and y != 0):
+                            neighbors.append((col+x, row+y))
+                    except IndexError:
+                        pass
+            nodegraph[(col, row)] = neighbors
+    mapdict["nodegrid"] = nodegrid
     mapdict["nodegraph"] = nodegraph
     return mapdict
             

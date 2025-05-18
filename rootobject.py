@@ -118,6 +118,10 @@ class RootObject(pygame.sprite.WeakSprite):
             self.current_target = None
 
     def find_a_path(self, mapdict, target):
+        tw = mapdict["tilewidth"]
+        th = mapdict["tileheight"]
+        n_grid = mapdict["nodegrid"]
+        n_graph = mapdict["nodegraph"]
         #todo: extract the node graph from the map when i call this. no reason to bring all the images and shit along
         #gist: rough out the current "node" and the target "node" then do all the pathfinding in between,
         #then return a list of destinations to go through.
@@ -126,6 +130,40 @@ class RootObject(pygame.sprite.WeakSprite):
         #will probably work smoother when i make an actual graph out of my node chart
         startnode = self.grid_position(mapdict)
         target_node = target.grid_position(mapdict)
+        if target.grid_oob(mapdict) != True:
+            print(f"well, you've done it, {target_node} is out of bounds.")
+            print(f"possible moves: {n_graph[target_node]}. hope there's one!")
+
+            least_distance = float("inf")
+            best_node = None
+            min_y, max_y, min_x, max_x = 0,1,0,1
+            if n_graph[target_node] == []:
+                best_node = target_node
+                while n_graph[best_node] == []:
+                    min_x-=1
+                    min_y-=1
+                    max_x+=1
+                    max_y+=1
+                    start_x = best_node[0]
+                    start_y = best_node[1]
+                    for y in range(min_y, max_y):
+                        for x in range(min_x, max_x):
+                            check_x = start_x + x
+                            check_y = start_y + y
+                            print(f"{check_x}, {check_y} wtf check")
+                            check_node = (check_x, check_y)
+                            print(f"checking {check_node}")
+                            if n_graph[check_node] != [] and n_graph[check_node] != None:
+                                best_node = check_node
+            else:
+                for node in n_graph[target_node]:
+                    n_d = abs(node[0] - target_node[0]) + abs(node[1] - target_node[1])
+                    if n_d < least_distance:
+                        least_distance = n_d
+                        best_node = node
+            target_node = best_node
+            print(f"found a suitable node at {target_node}. moves: {n_graph[target_node]}")
+      
         print(f"start node: {startnode}, end node: {target_node}")
         frontier = queue.Queue()
         frontier.put(startnode)
@@ -133,50 +171,27 @@ class RootObject(pygame.sprite.WeakSprite):
         path_to_target = {}
         path_to_target[startnode] = None
         #tired of typing so much every check!
-        tw = mapdict["tilewidth"]
-        th = mapdict["tileheight"]
-        ng = mapdict["nodegraph"]
+        
+        
         while not frontier.empty():
             current = frontier.get()
             #print(f"current: {current}")
-            if current[0] <= 0:
-                c_x_min = 0
-                c_x_max = current[0]+2
-            elif current[0] >= len(ng[0]):
-                c_x_min = current[0]-1
-                c_x_max = current[0]
-            else:
-                c_x_min = current[0]-1
-                c_x_max = current[0]+2
-            if current[1] <= 0:
-                c_y_min = 0
-                c_y_max = current[1]+2
-            elif current[1] >= len(ng):
-                c_y_min = current[1]-1
-                c_y_max = current[1]
-            else:
-                c_y_min = current[1]-1
-                c_y_max = current[1]+2
             if current == target_node:
                 break
-            for x in range(c_x_min, c_x_max):
-                for y in range(c_y_min, c_y_max):
-                    next = (x, y)
-                    if next not in path_to_target:
+            for next in n_graph[current]:
+                if next not in path_to_target:
                         #if ng[next[1]][next[0]] == True:
-                        frontier.put(next)
-                        path_to_target[next] = current
-                        """ else:
-                            frontier.put(next)
-                            last_known_good[next] = current """
+                    frontier.put(next)
+                    path_to_target[next] = current
+        print(f"path to target: {path_to_target}")           
         pathnode = target_node
         pathway = []
-        if ng[pathnode[1]][pathnode[0]] == True:
-           pathway.append(target.position.xy)
-        
+        pathway.append(((target_node[0]*tw)+(tw//2), (pathnode[1]*th)+(th//2)))                
+
         while pathnode != startnode:
             fixed_pathnode = ((pathnode[0] * tw) + (tw//2), (pathnode[1] * th) + (th//2))
-            if ng[pathnode[1]][pathnode[0]] == True:
+            #if n_grid[pathnode[1]][pathnode[0]] == True:
+            if path_to_target[pathnode]:
                 #if fixed_pathnode[0]//tw == pathnode[0] and fixed_pathnode[1]//th == pathnode[1]:
                 pathway.append(fixed_pathnode)
                     
@@ -186,9 +201,19 @@ class RootObject(pygame.sprite.WeakSprite):
                     expected_pn = (pathnode[0]*tw, pathnode[1]*th)
                     print(f"expected path node: {pathnode}, actual path node: {unfixed_pn}")
                     print(f"expected location: {expected_pn}, actual location: {fixed_pathnode}") """
+                
                 pathnode = path_to_target[pathnode]
             else:
-                print(f"path node {pathnode} is out of bounds. skipping")
+                found = False
+                #while found != True:
+                for nextnode in n_graph[pathnode]:
+                    if n_grid[nextnode[1]][nextnode[0]] == True:
+                        found = True
+                        pathnode = nextnode
+                        break
+                
+                    
+                #print(f"path node {pathnode} is out of bounds. skipping")
                 #while ng[pathnode[1]][pathnode[0]] != True:
                     #pathnode = path_to_target[pathnode]
             """ elif pathnode not in path_to_target:
@@ -216,7 +241,7 @@ class RootObject(pygame.sprite.WeakSprite):
     
     def grid_oob(self, mapdict):
         g_pos = self.grid_position(mapdict)
-        return mapdict["nodegraph"][g_pos[1]][g_pos[0]]
+        return mapdict["nodegrid"][g_pos[1]][g_pos[0]]
     
     def grid_distance(self, target, mapdict):
         s_grid = self.grid_position(mapdict)
