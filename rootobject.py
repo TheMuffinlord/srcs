@@ -129,16 +129,20 @@ class RootObject(pygame.sprite.WeakSprite):
         print(f"start node: {startnode}, end node: {target_node}")
         frontier = queue.Queue()
         frontier.put(startnode)
+        #last_known_good = {}
         path_to_target = {}
         path_to_target[startnode] = None
-        
+        #tired of typing so much every check!
+        tw = mapdict["tilewidth"]
+        th = mapdict["tileheight"]
+        ng = mapdict["nodegraph"]
         while not frontier.empty():
             current = frontier.get()
             #print(f"current: {current}")
             if current[0] <= 0:
                 c_x_min = 0
                 c_x_max = current[0]+2
-            elif current[0] >= len(mapdict["nodegraph"][0]):
+            elif current[0] >= len(ng[0]):
                 c_x_min = current[0]-1
                 c_x_max = current[0]
             else:
@@ -147,7 +151,7 @@ class RootObject(pygame.sprite.WeakSprite):
             if current[1] <= 0:
                 c_y_min = 0
                 c_y_max = current[1]+2
-            elif current[1] >= len(mapdict["nodegraph"]):
+            elif current[1] >= len(ng):
                 c_y_min = current[1]-1
                 c_y_max = current[1]
             else:
@@ -159,17 +163,45 @@ class RootObject(pygame.sprite.WeakSprite):
                 for y in range(c_y_min, c_y_max):
                     next = (x, y)
                     if next not in path_to_target:
-                        if mapdict["nodegraph"][next[1]][next[0]] == True:
+                        #if ng[next[1]][next[0]] == True:
+                        frontier.put(next)
+                        path_to_target[next] = current
+                        """ else:
                             frontier.put(next)
-                            path_to_target[next] = current
+                            last_known_good[next] = current """
         pathnode = target_node
         pathway = []
-        pathway.append(target.position.xy)
+        if ng[pathnode[1]][pathnode[0]] == True:
+           pathway.append(target.position.xy)
+        
         while pathnode != startnode:
-            fixed_pathnode = (pathnode[0] * mapdict["tilewidth"], pathnode[1] * mapdict["tileheight"])
-            if mapdict["nodegraph"][pathnode[1]][pathnode[0]] == True:
+            fixed_pathnode = ((pathnode[0] * tw) + (tw//2), (pathnode[1] * th) + (th//2))
+            if ng[pathnode[1]][pathnode[0]] == True:
+                #if fixed_pathnode[0]//tw == pathnode[0] and fixed_pathnode[1]//th == pathnode[1]:
                 pathway.append(fixed_pathnode)
-            pathnode = path_to_target[pathnode]
+                    
+                """ else:
+                    print(f"pathnode mismatch. here's the math:")
+                    unfixed_pn = (fixed_pathnode[0]//tw, fixed_pathnode[1]//th)
+                    expected_pn = (pathnode[0]*tw, pathnode[1]*th)
+                    print(f"expected path node: {pathnode}, actual path node: {unfixed_pn}")
+                    print(f"expected location: {expected_pn}, actual location: {fixed_pathnode}") """
+                pathnode = path_to_target[pathnode]
+            else:
+                print(f"path node {pathnode} is out of bounds. skipping")
+                #while ng[pathnode[1]][pathnode[0]] != True:
+                    #pathnode = path_to_target[pathnode]
+            """ elif pathnode not in path_to_target:
+                #find the nearest in bounds node to the player and use that
+                print(f"trying to go out of bounds at {pathnode}.")
+                if last_known_good[pathnode] in path_to_target:
+                    pathnode = last_known_good[pathnode]
+                    print(f"last known good node should be {pathnode}. Hope this doesn't crash!")
+                else:
+                    print(last_known_good)
+                    print("pathfinding error!")
+                    break """
+
         path_pings = []
         for p in pathway:
             path_pings.append(PingObject(p[0], p[1]))

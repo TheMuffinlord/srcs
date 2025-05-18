@@ -98,13 +98,17 @@ class PlayerRobot(RootObject):
        
     def Move_Closer(self, dt, mapdict):
         #this works but will need to be replaced once there's, y'know, obstacles
-        if self.destination != []:
+        if self.destination != [] and self.destination != None:
             if self.next_node == None:
                 print(f"path list: {self.destination}")
                 next_spot = self.destination.pop()
-                nn_x = next_spot[0]
-                nn_y = next_spot[1]
-                print(f"next node created at {nn_x, nn_y}")
+                if isinstance(next_spot, tuple):
+                    nn_x = next_spot[0]
+                    nn_y = next_spot[1]
+                elif isinstance(next_spot, pygame.Vector2):
+                    nn_x = next_spot.x
+                    nn_y = next_spot.y
+                #print(f"next node created at {nn_x, nn_y}")
                 self.next_node = RootObject(nn_x, nn_y, 2)
         if self.next_node != None:
             degrees = self.find_angle(self.next_node)
@@ -118,7 +122,7 @@ class PlayerRobot(RootObject):
             if self.grid_oob(mapdict) == False:
                 g_pos = self.grid_position(mapdict)
                 print(f"ah shit we went out of bounds on grid square {g_pos}")
-            if self.collision_rough(self.next_node) == False:
+            if self.rect.contains(self.next_node.rect) == False:
                 self.move(dt)
             else:
                 self.next_node = None
