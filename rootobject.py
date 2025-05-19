@@ -165,27 +165,28 @@ class RootObject(pygame.sprite.WeakSprite):
             print(f"found a suitable node at {target_node}. moves: {n_graph[target_node]}. In bounds: {n_grid[target_node[1]][target_node[0]]}")
       
         print(f"start node: {startnode}, end node: {target_node}")
-        frontier = queue.Queue()
-        frontier.put(startnode)
-        #last_known_good = {}
+        frontier = queue.PriorityQueue()
+        frontier.put(startnode, 0)
+        cost_to_target = {}
         path_to_target = {}
         path_to_target[startnode] = None
+        cost_to_target[startnode] = 0
         #tired of typing so much every check!
-        grid_pings = []
+        
         
         while not frontier.empty():
             current = frontier.get()
+            if current == target_node:
+                break
             for next in n_graph[current]:
-                if next not in path_to_target:
-                    frontier.put(next)
+                new_cost = cost_to_target[current] + coord_distance_tup(current, next)
+                if next not in cost_to_target or new_cost < cost_to_target[next]:
+                    cost_to_target[next] = new_cost
+                    priority = new_cost + coord_distance_tup(target_node, next)
+                    frontier.put(next, priority)
                     path_to_target[next] = current
-                #elif current not in path_to_target[next]:
-            '''if current != None:
-                print(f"ping object at {current}")
-                c_x = current[0]
-                c_y = current[1]
-                grid_pings.append(PingObject((c_x*tw)+(tw//2), (c_y*th)+(th//2)))'''
-        print(f"path to target: {path_to_target}")
+        
+        #print(f"path to target: {path_to_target}")
         pathnode = target_node
         pathway = []
         pathway.append(((target_node[0]*tw)+(tw//2), (pathnode[1]*th)+(th//2)))                
@@ -194,7 +195,7 @@ class RootObject(pygame.sprite.WeakSprite):
             least_distance = float("inf")
             min_y, max_y, min_x, max_x = 0,1,0,1
             best_node = pathnode
-            print(f"beginning check, current node is {best_node}. Paths: {n_graph[best_node]}")
+            #print(f"beginning check, current node is {best_node}. Paths: {n_graph[best_node]}")
             while n_grid[best_node[1]][best_node[0]] != True:
                 min_x-=1
                 min_y-=1
@@ -206,9 +207,9 @@ class RootObject(pygame.sprite.WeakSprite):
                     for x in range(min_x, max_x):
                         check_x = start_x + x
                         check_y = start_y + y
-                        print(f"{check_x}, {check_y} wtf check")
+                        #print(f"{check_x}, {check_y} wtf check")
                         check_node = (check_x, check_y)
-                        print(f"checking {check_node}")
+                        #print(f"checking {check_node}")
                         if check_node in path_to_target:
                             best_node = check_node
             pathnode = best_node
@@ -254,3 +255,9 @@ class PingObject(RootObject):
         self.timer -= dt
         if self.timer <= 0:
             self.kill()
+
+def coord_distance_tup(t_a, t_b):
+    return abs(t_a[0] - t_b[0]) + abs(t_a[1] - t_b[1])
+
+def coord_distance_xy(x1, y1, x2, y2):
+    return abs(x1 - x2) + abs(y1 - y2)

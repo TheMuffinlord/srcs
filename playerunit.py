@@ -100,7 +100,7 @@ class PlayerRobot(RootObject):
         #this works but will need to be replaced once there's, y'know, obstacles
         if self.destination != [] and self.destination != None:
             if self.next_node == None:
-                print(f"path list: {self.destination}")
+                #print(f"path list: {self.destination}")
                 next_spot = self.destination.pop()
                 if isinstance(next_spot, tuple):
                     nn_x = next_spot[0]
