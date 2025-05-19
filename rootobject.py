@@ -153,16 +153,16 @@ class RootObject(pygame.sprite.WeakSprite):
                             print(f"{check_x}, {check_y} wtf check")
                             check_node = (check_x, check_y)
                             print(f"checking {check_node}")
-                            if n_graph[check_node] != [] and n_graph[check_node] != None:
+                            if n_graph[check_node] != [] and n_graph[check_node] != None and n_grid[check_node[1]][check_node[0]]:
                                 best_node = check_node
             else:
                 for node in n_graph[target_node]:
                     n_d = abs(node[0] - target_node[0]) + abs(node[1] - target_node[1])
-                    if n_d < least_distance:
+                    if n_d < least_distance and n_grid[node[1]][node[0]] == True:
                         least_distance = n_d
                         best_node = node
             target_node = best_node
-            print(f"found a suitable node at {target_node}. moves: {n_graph[target_node]}")
+            print(f"found a suitable node at {target_node}. moves: {n_graph[target_node]}. In bounds: {n_grid[target_node[1]][target_node[0]]}")
       
         print(f"start node: {startnode}, end node: {target_node}")
         frontier = queue.Queue()
@@ -171,61 +171,54 @@ class RootObject(pygame.sprite.WeakSprite):
         path_to_target = {}
         path_to_target[startnode] = None
         #tired of typing so much every check!
-        
+        grid_pings = []
         
         while not frontier.empty():
             current = frontier.get()
-            #print(f"current: {current}")
-            if current == target_node:
-                break
             for next in n_graph[current]:
                 if next not in path_to_target:
-                        #if ng[next[1]][next[0]] == True:
                     frontier.put(next)
                     path_to_target[next] = current
-        print(f"path to target: {path_to_target}")           
+                #elif current not in path_to_target[next]:
+            '''if current != None:
+                print(f"ping object at {current}")
+                c_x = current[0]
+                c_y = current[1]
+                grid_pings.append(PingObject((c_x*tw)+(tw//2), (c_y*th)+(th//2)))'''
+        print(f"path to target: {path_to_target}")
         pathnode = target_node
         pathway = []
         pathway.append(((target_node[0]*tw)+(tw//2), (pathnode[1]*th)+(th//2)))                
-
+        if pathnode not in path_to_target:
+            print(f"{self.name}: invalid path node: {pathnode}. let's search for a new one")
+            least_distance = float("inf")
+            min_y, max_y, min_x, max_x = 0,1,0,1
+            best_node = pathnode
+            print(f"beginning check, current node is {best_node}. Paths: {n_graph[best_node]}")
+            while n_grid[best_node[1]][best_node[0]] != True:
+                min_x-=1
+                min_y-=1
+                max_x+=1
+                max_y+=1
+                start_x = best_node[0]
+                start_y = best_node[1]
+                for y in range(min_y, max_y):
+                    for x in range(min_x, max_x):
+                        check_x = start_x + x
+                        check_y = start_y + y
+                        print(f"{check_x}, {check_y} wtf check")
+                        check_node = (check_x, check_y)
+                        print(f"checking {check_node}")
+                        if check_node in path_to_target:
+                            best_node = check_node
+            pathnode = best_node
+            
         while pathnode != startnode:
             fixed_pathnode = ((pathnode[0] * tw) + (tw//2), (pathnode[1] * th) + (th//2))
             #if n_grid[pathnode[1]][pathnode[0]] == True:
-            if path_to_target[pathnode]:
-                #if fixed_pathnode[0]//tw == pathnode[0] and fixed_pathnode[1]//th == pathnode[1]:
+            if pathnode in path_to_target.keys():
                 pathway.append(fixed_pathnode)
-                    
-                """ else:
-                    print(f"pathnode mismatch. here's the math:")
-                    unfixed_pn = (fixed_pathnode[0]//tw, fixed_pathnode[1]//th)
-                    expected_pn = (pathnode[0]*tw, pathnode[1]*th)
-                    print(f"expected path node: {pathnode}, actual path node: {unfixed_pn}")
-                    print(f"expected location: {expected_pn}, actual location: {fixed_pathnode}") """
-                
                 pathnode = path_to_target[pathnode]
-            else:
-                found = False
-                #while found != True:
-                for nextnode in n_graph[pathnode]:
-                    if n_grid[nextnode[1]][nextnode[0]] == True:
-                        found = True
-                        pathnode = nextnode
-                        break
-                
-                    
-                #print(f"path node {pathnode} is out of bounds. skipping")
-                #while ng[pathnode[1]][pathnode[0]] != True:
-                    #pathnode = path_to_target[pathnode]
-            """ elif pathnode not in path_to_target:
-                #find the nearest in bounds node to the player and use that
-                print(f"trying to go out of bounds at {pathnode}.")
-                if last_known_good[pathnode] in path_to_target:
-                    pathnode = last_known_good[pathnode]
-                    print(f"last known good node should be {pathnode}. Hope this doesn't crash!")
-                else:
-                    print(last_known_good)
-                    print("pathfinding error!")
-                    break """
 
         path_pings = []
         for p in pathway:

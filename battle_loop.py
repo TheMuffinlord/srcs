@@ -216,7 +216,8 @@ def battle_mode(screen):
                     if clicked_button[0]:
                         for unit in SelectionGroup:
                             #unit.destination.append(go_here.position.xy)
-                            unit.find_a_path(battle_map, go_here)
+                            if isinstance(unit, PlayerRobot):
+                                unit.find_a_path(battle_map, go_here)
                             toggle_selection(unit)
                     elif clicked_button[1]:
                         #dunno what this button will do

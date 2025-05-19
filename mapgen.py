@@ -116,8 +116,9 @@ def pathnode_generator(mapdict: dict):
             for x in range(-1, 2):
                 for y in range(-1, 2):
                     try:
-                        if nodegrid[row+y][col+x] == True and (x != 0 and y != 0):
-                            neighbors.append((col+x, row+y))
+                        if nodegrid[row+y][col+x] == True:
+                            if not (x != 0 and y != 0):
+                                neighbors.append((col+x, row+y))
                     except IndexError:
                         pass
             nodegraph[(col, row)] = neighbors
