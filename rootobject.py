@@ -164,7 +164,7 @@ class RootObject(pygame.sprite.WeakSprite):
             target_node = best_node
             print(f"found a suitable node at {target_node}. moves: {n_graph[target_node]}. In bounds: {n_grid[target_node[1]][target_node[0]]}")
       
-        print(f"start node: {startnode}, end node: {target_node}")
+        print(f"start node: {startnode}, end node: {target_node}. distance: {coord_distance_tup(startnode, target_node)}")
         frontier = queue.PriorityQueue()
         frontier.put(startnode, 0)
         cost_to_target = {}
@@ -179,12 +179,20 @@ class RootObject(pygame.sprite.WeakSprite):
             if current == target_node:
                 break
             for next in n_graph[current]:
-                new_cost = cost_to_target[current] + coord_distance_tup(current, next)
+                new_cost = cost_to_target[current] + coord_distance_tup(current, target_node)
                 if next not in cost_to_target or new_cost < cost_to_target[next]:
                     cost_to_target[next] = new_cost
                     priority = new_cost + coord_distance_tup(target_node, next)
                     frontier.put(next, priority)
                     path_to_target[next] = current
+                elif new_cost == cost_to_target[next]:
+                    newer_cost = cost_to_target[current] + coord_distance_tiebreaker_tup(current, target_node, startnode)
+                    #print(f"comparing costs, {new_cost} and {newer_cost}")
+                    if new_cost < newer_cost and new_cost < cost_to_target[next]:
+                        cost_to_target[next] = new_cost
+                        priority = newer_cost + coord_distance_tup(target_node, next)
+                        frontier.put(next, priority)
+                        path_to_target[next] = current
         
         #print(f"path to target: {path_to_target}")
         pathnode = target_node
@@ -219,12 +227,14 @@ class RootObject(pygame.sprite.WeakSprite):
             #if n_grid[pathnode[1]][pathnode[0]] == True:
             if pathnode in path_to_target.keys():
                 pathway.append(fixed_pathnode)
+                #print(f"cost to node: {cost_to_target[pathnode]}")
                 pathnode = path_to_target[pathnode]
 
         path_pings = []
         for p in pathway:
             path_pings.append(PingObject(p[0], p[1]))
         #print(f"pathfinding complete, here's the results:\n----------\n{pathway}\n----------\nfull grid:\n==========\n{path_to_target}")
+        
         self.destination = pathway
         self.in_transit = False
 
@@ -240,7 +250,8 @@ class RootObject(pygame.sprite.WeakSprite):
     def grid_distance(self, target, mapdict):
         s_grid = self.grid_position(mapdict)
         t_grid = target.grid_position(mapdict)
-        return abs(s_grid[0] - t_grid[0]) + abs(s_grid[1] - t_grid[1])
+        #return abs(s_grid[0] - t_grid[0]) + abs(s_grid[1] - t_grid[1])
+        return coord_distance_tup(s_grid, t_grid)
 
 class PingObject(RootObject):
     def __init__(self, x, y):
@@ -257,7 +268,26 @@ class PingObject(RootObject):
             self.kill()
 
 def coord_distance_tup(t_a, t_b):
-    return abs(t_a[0] - t_b[0]) + abs(t_a[1] - t_b[1])
+    dx = abs(t_a[0] - t_b[0])
+    dy = abs(t_a[1] - t_b[1])
+    d_value = 1
+    dtwo_value = math.sqrt(2)
+    return d_value * (dx + dy) + (dtwo_value - 2*d_value) * min(dx, dy)
+
+def coord_distance_tiebreaker_tup(t_a, t_b, t_c):
+    dx1 = abs(t_a[0] - t_b[0])
+    dy1 = abs(t_a[1] - t_b[1])
+    dx2 = abs(t_c[0] - t_b[0])
+    dy2 = abs(t_c[1] - t_b[1])
+    cross = abs(dx1*dy2 - dx2*dy1)
+    h = coord_distance_tup(t_a, t_b) + (cross * 0.001)
+    return h
 
 def coord_distance_xy(x1, y1, x2, y2):
-    return abs(x1 - x2) + abs(y1 - y2)
+    dx = abs(x1 - x2)
+    dy = abs(y1 - y2)
+    d_value = 1 
+    dtwo_value = math.sqrt(2)
+    return d_value * (dx + dy) + (dtwo_value - 2*d_value) * min(dx, dy)
+    
+
