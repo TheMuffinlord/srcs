@@ -180,25 +180,31 @@ class RootObject(pygame.sprite.WeakSprite):
         path_to_target[startnode] = None
         cost_to_target[startnode] = 0
         #tired of typing so much every check!
-        
+        p_change_x = 0
+        p_change_y = 0
         
         while not frontier.empty():
             current = frontier.get()
             if current == target_node:
                 break
             for next in n_graph[current]:
-                new_cost = cost_to_target[current] + coord_distance_tup(current, target_node)
+                n_change_x = abs(next[0] - current[0])
+                n_change_y = abs(next[1] - current[1])
+                new_cost = cost_to_target[current] + coord_distance_tup(target_node, next) + max(n_change_x, n_change_y)
                 if next not in cost_to_target or new_cost < cost_to_target[next]:
                     cost_to_target[next] = new_cost
-                    priority = new_cost + coord_distance_tup(target_node, next)
+                    priority = new_cost #+ coord_distance_tup(target_node, next)
                     frontier.put(next, priority)
                     path_to_target[next] = current
+                    p_change_x = n_change_x
+                    p_change_y = n_change_y
                 elif new_cost == cost_to_target[next]:
-                    newer_cost = cost_to_target[current] + coord_distance_tiebreaker_tup(current, target_node, startnode)
+                    oldnew_cost = cost_to_target[next] + coord_distance_tiebreaker_tup(next, target_node, startnode) + max(p_change_x, p_change_y)
+                    newer_cost = cost_to_target[current] + coord_distance_tiebreaker_tup(current, target_node, startnode) + max(n_change_x, n_change_y)
                     #print(f"comparing costs, {new_cost} and {newer_cost}")
-                    if new_cost < newer_cost and new_cost < cost_to_target[next]:
+                    if oldnew_cost < newer_cost and new_cost < cost_to_target[next]:
                         cost_to_target[next] = new_cost
-                        priority = newer_cost + coord_distance_tup(target_node, next)
+                        priority = newer_cost #+ coord_distance_tup(target_node, next)
                         frontier.put(next, priority)
                         path_to_target[next] = current
         
@@ -276,11 +282,15 @@ class PingObject(RootObject):
             self.kill()
 
 def coord_distance_tup(t_a, t_b):
-    dx = abs(t_a[0] - t_b[0])
-    dy = abs(t_a[1] - t_b[1])
-    d_value = 1
-    dtwo_value = math.sqrt(2)
-    return d_value * (dx + dy) + (dtwo_value - 2*d_value) * min(dx, dy)
+    dx1 = t_a[0]
+    dy1 = t_a[1]
+    dx2 = t_b[0]
+    dy2 = t_b[1]
+    #d_value = 1
+    #dtwo_value = 1 #math.sqrt(2)
+    #return d_value * (dx + dy) + (dtwo_value - 2*d_value) * min(dx, dy)
+    #return d_value * math.sqrt(dx * dx + dy * dy)
+    return coord_distance_xy(dx1, dy1, dx2, dy2)
 
 def coord_distance_tiebreaker_tup(t_a, t_b, t_c):
     dx1 = abs(t_a[0] - t_b[0])
@@ -294,8 +304,9 @@ def coord_distance_tiebreaker_tup(t_a, t_b, t_c):
 def coord_distance_xy(x1, y1, x2, y2):
     dx = abs(x1 - x2)
     dy = abs(y1 - y2)
-    d_value = 1 
-    dtwo_value = math.sqrt(2)
-    return d_value * (dx + dy) + (dtwo_value - 2*d_value) * min(dx, dy)
+    d_value = 1
+    #dtwo_value = 1 #math.sqrt(2)
+    #return d_value * (dx + dy) + (dtwo_value - 2*d_value) * min(dx, dy)
+    return d_value * math.sqrt(dx * dx + dy * dy)
     
 
