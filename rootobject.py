@@ -193,18 +193,18 @@ class RootObject(pygame.sprite.WeakSprite):
                 new_cost = cost_to_target[current] + coord_distance_tup(target_node, next) + max(n_change_x, n_change_y)
                 if next not in cost_to_target or new_cost < cost_to_target[next]:
                     cost_to_target[next] = new_cost
-                    priority = new_cost #+ coord_distance_tup(target_node, next)
+                    priority = new_cost + coord_distance_tup(target_node, next)
                     frontier.put(next, priority)
                     path_to_target[next] = current
                     p_change_x = n_change_x
                     p_change_y = n_change_y
                 elif new_cost == cost_to_target[next]:
-                    oldnew_cost = cost_to_target[next] + coord_distance_tiebreaker_tup(next, target_node, startnode) + max(p_change_x, p_change_y)
-                    newer_cost = cost_to_target[current] + coord_distance_tiebreaker_tup(current, target_node, startnode) + max(n_change_x, n_change_y)
-                    #print(f"comparing costs, {new_cost} and {newer_cost}")
-                    if oldnew_cost < newer_cost and new_cost < cost_to_target[next]:
-                        cost_to_target[next] = new_cost
-                        priority = newer_cost #+ coord_distance_tup(target_node, next)
+                    next_cost = cost_to_target[next] + coord_distance_tiebreaker_tup(next, target_node, startnode) + max(n_change_x, n_change_y)
+                    current_cost = cost_to_target[current] + coord_distance_tiebreaker_tup(current, target_node, startnode) + max(p_change_x, p_change_y)
+                    #print(f"comparing costs, {oldnew_cost} and {newer_cost}")
+                    if next_cost < current_cost: #and oldnew_cost < cost_to_target[next]:
+                        cost_to_target[next] = next_cost
+                        priority = next_cost + coord_distance_tup(target_node, next)
                         frontier.put(next, priority)
                         path_to_target[next] = current
         
@@ -286,10 +286,6 @@ def coord_distance_tup(t_a, t_b):
     dy1 = t_a[1]
     dx2 = t_b[0]
     dy2 = t_b[1]
-    #d_value = 1
-    #dtwo_value = 1 #math.sqrt(2)
-    #return d_value * (dx + dy) + (dtwo_value - 2*d_value) * min(dx, dy)
-    #return d_value * math.sqrt(dx * dx + dy * dy)
     return coord_distance_xy(dx1, dy1, dx2, dy2)
 
 def coord_distance_tiebreaker_tup(t_a, t_b, t_c):
