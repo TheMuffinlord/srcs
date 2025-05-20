@@ -150,6 +150,14 @@ class RootObject(pygame.sprite.WeakSprite):
                         for x in range(min_x, max_x):
                             check_x = start_x + x
                             check_y = start_y + y
+                            if check_x < 0:
+                                check_x = 0
+                            if check_y < 0:
+                                check_y = 0
+                            if check_y > len(n_grid)-1:
+                                check_y = len(n_grid)-1
+                            if check_x > len(n_grid[check_y])-1:
+                                check_x = len(n_grid[check_y])-1
                             print(f"{check_x}, {check_y} wtf check")
                             check_node = (check_x, check_y)
                             print(f"checking {check_node}")
@@ -164,7 +172,7 @@ class RootObject(pygame.sprite.WeakSprite):
             target_node = best_node
             print(f"found a suitable node at {target_node}. moves: {n_graph[target_node]}. In bounds: {n_grid[target_node[1]][target_node[0]]}")
       
-        print(f"start node: {startnode}, end node: {target_node}. distance: {coord_distance_tup(startnode, target_node)}")
+        #print(f"start node: {startnode}, end node: {target_node}. distance: {coord_distance_tup(startnode, target_node)}")
         frontier = queue.PriorityQueue()
         frontier.put(startnode, 0)
         cost_to_target = {}

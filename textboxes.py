@@ -48,6 +48,7 @@ class DamageAlertBox(TextBoxObject):
         self.timer_start = 3
         self.timer = 0
         self.lifespan = DAMAGE_ALERT_LIFESPAN
+        self.text_size = 36
 
     def draw(self, screen):
         self.box = pygame.rect.Rect(self.x, self.y, self.width, self.height)
