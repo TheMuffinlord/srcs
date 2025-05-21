@@ -174,7 +174,7 @@ class RootObject(pygame.sprite.WeakSprite):
       
         #print(f"start node: {startnode}, end node: {target_node}. distance: {coord_distance_tup(startnode, target_node)}")
         frontier = queue.PriorityQueue()
-        frontier.put(startnode, 0)
+        frontier.put((0, startnode))
         cost_to_target = {}
         path_to_target = {}
         path_to_target[startnode] = None
@@ -184,7 +184,7 @@ class RootObject(pygame.sprite.WeakSprite):
         p_change_y = 0
         
         while not frontier.empty():
-            current = frontier.get()
+            current = frontier.get()[1]
             if current == target_node:
                 break
             for next in n_graph[current]:
@@ -194,7 +194,7 @@ class RootObject(pygame.sprite.WeakSprite):
                 if next not in cost_to_target or new_cost < cost_to_target[next]:
                     cost_to_target[next] = new_cost
                     priority = new_cost + coord_distance_tup(target_node, next)
-                    frontier.put(next, priority)
+                    frontier.put((priority, next))
                     path_to_target[next] = current
                     p_change_x = n_change_x
                     p_change_y = n_change_y
@@ -205,7 +205,7 @@ class RootObject(pygame.sprite.WeakSprite):
                     if next_cost < current_cost: #and oldnew_cost < cost_to_target[next]:
                         cost_to_target[next] = next_cost
                         priority = next_cost + coord_distance_tup(target_node, next)
-                        frontier.put(next, priority)
+                        frontier.put((priority, next))
                         path_to_target[next] = current
         
         #print(f"path to target: {path_to_target}")
