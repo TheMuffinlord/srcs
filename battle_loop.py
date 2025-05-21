@@ -149,8 +149,8 @@ def battle_mode(screen):
             
     
 
-    #Spawner = EnemySpawner(1500, 500)
-    #Spawner2 = EnemySpawner(1800, 900)
+    Spawner = EnemySpawner(1200, 1250)
+    Spawner2 = EnemySpawner(1250, 1200)
 
     #action_waiting = False
     #kbd_waiting = False
@@ -275,7 +275,7 @@ def battle_mode(screen):
             if item in PlayerGroup:
                 item.update(dt, EnemyGroup, playable_area, battle_map)
             elif item in EnemyGroup:
-                item.update(dt, PlayerGroup, BulletGroup, playable_area)
+                item.update(dt, PlayerGroup, BulletGroup, playable_area, battle_map)
             else:
                 item.update(dt)
         

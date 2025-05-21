@@ -28,8 +28,7 @@ class PlayerRobot(RootObject):
         self.unit_number = unit_number
         self.sight_range = PLAYER_DETECTION_RANGE
         self.selected = False
-        self.in_transit = False
-        self.next_node = None
+        
         '''self.equipment = [
             EngineType(PLAYER_MOVESPEED, PLAYER_TURN_SPEED),
             PrimaryWeaponType(MINIGUN_ARC, MINIGUN_ROF)
@@ -86,21 +85,9 @@ class PlayerRobot(RootObject):
                 #print("something broke")
                 self.Unit_Destroyed()
 
-    
-
-    def aim_rotate(self, dt): #TODO:  CLAMP THIS LATER
-        degrees = self.find_angle(self.current_target) 
-        if degrees < self.aim_rotation:
-            self.aim_rotation += self.rotation_speed * (-1 * dt)
-        elif degrees > self.aim_rotation:
-            self.aim_rotation += self.rotation_speed * dt
-        #print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
-       
     def Move_Closer(self, dt, mapdict):
-        #this works but will need to be replaced once there's, y'know, obstacles
         if self.destination != [] and self.destination != None:
             if self.next_node == None:
-                #print(f"path list: {self.destination}")
                 next_spot = self.destination.pop()
                 if isinstance(next_spot, tuple):
                     nn_x = next_spot[0]
@@ -108,7 +95,6 @@ class PlayerRobot(RootObject):
                 elif isinstance(next_spot, pygame.Vector2):
                     nn_x = next_spot.x
                     nn_y = next_spot.y
-                #print(f"next node created at {nn_x, nn_y}")
                 self.next_node = RootObject(nn_x, nn_y, 2)
         if self.next_node != None:
             degrees = self.find_angle(self.next_node)
@@ -126,6 +112,16 @@ class PlayerRobot(RootObject):
                 self.move(dt)
             else:
                 self.next_node = None
+
+    def aim_rotate(self, dt): #TODO:  CLAMP THIS LATER
+        degrees = self.find_angle(self.current_target) 
+        if degrees < self.aim_rotation:
+            self.aim_rotation += self.rotation_speed * (-1 * dt)
+        elif degrees > self.aim_rotation:
+            self.aim_rotation += self.rotation_speed * dt
+        #print(f"current rotation: {self.aim_rotation}, angle of target: {degrees}")
+       
+    
     
         
     def Fire_At_Will(self, dt):

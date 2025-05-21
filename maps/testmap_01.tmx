@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="25" tilewidth="64" tileheight="64" infinite="0" nextlayerid="3" nextobjectid="8">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="25" tilewidth="64" tileheight="64" infinite="0" nextlayerid="4" nextobjectid="9">
  <properties>
   <property name="mapname" value="test map 1"/>
  </properties>
@@ -34,16 +34,19 @@
 </data>
  </layer>
  <objectgroup id="2" name="objects">
-  <object id="4" name="spawnpoint" x="110.19" y="115.566">
+  <object id="4" name="spawnpoint" x="226.651" y="235.611">
    <point/>
   </object>
-  <object id="5" name="lure1" type="lureobject" x="206.943" y="183.651">
+  <object id="5" name="lure1" type="lureobject" x="615.454" y="493.617">
    <point/>
   </object>
-  <object id="6" name="lure2" type="lureobject" x="464.054" y="535.722">
+  <object id="6" name="lure2" type="lureobject" x="1243.45" y="1314.22">
    <point/>
   </object>
-  <object id="7" name="lure3" type="lureobject" x="813.438" y="216.797">
+  <object id="7" name="lure3" type="lureobject" x="1378.72" y="373.572">
+   <point/>
+  </object>
+  <object id="8" name="test_spawner" type="spawner" x="1182.53" y="1255.99">
    <point/>
   </object>
  </objectgroup>

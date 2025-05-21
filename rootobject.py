@@ -31,6 +31,8 @@ class RootObject(pygame.sprite.WeakSprite):
         self.name = "root object"
         self.can_damage = False
         self.destination = []
+        self.in_transit = False
+        self.next_node = None
         self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
         #rect gets overdrawn almost immediately. needed for map loader
         
@@ -140,6 +142,10 @@ class RootObject(pygame.sprite.WeakSprite):
             if n_graph[target_node] == []:
                 best_node = target_node
                 while n_graph[best_node] == []:
+                    if while_stuck < 1000000:
+                        while_stuck += 1
+                    else:
+                        raise TimeoutError(f"initial point OOB loop stuck for {self.name}. fix the map maybe?")
                     min_x-=1
                     min_y-=1
                     max_x+=1
@@ -182,8 +188,12 @@ class RootObject(pygame.sprite.WeakSprite):
         #tired of typing so much every check!
         p_change_x = 0
         p_change_y = 0
-        
+        while_stuck = 0
         while not frontier.empty():
+            if while_stuck < 1000000:
+                while_stuck += 1
+            else:
+                raise TimeoutError(f"frontier search loop stuck for {self.name}. trying to find path from {startnode} to {target_node}.\npath to target so far: {path_to_target}")
             current = frontier.get()[1]
             if current == target_node:
                 break
@@ -219,6 +229,10 @@ class RootObject(pygame.sprite.WeakSprite):
             best_node = pathnode
             #print(f"beginning check, current node is {best_node}. Paths: {n_graph[best_node]}")
             while n_grid[best_node[1]][best_node[0]] != True:
+                if while_stuck < 1000000:
+                    while_stuck += 1
+                else:
+                    raise TimeoutError(f"OOB correction loop stuck for {self.name}. i have no suggestions")
                 min_x-=1
                 min_y-=1
                 max_x+=1
@@ -237,6 +251,10 @@ class RootObject(pygame.sprite.WeakSprite):
             pathnode = best_node
             
         while pathnode != startnode:
+            if while_stuck < 1000000:
+                while_stuck += 1
+            else:
+                raise TimeoutError(f"pathfinding loop stuck for {self.name}. trying to find path from {startnode} to {target_node}.\npath to target: {path_to_target}")
             fixed_pathnode = ((pathnode[0] * tw) + (tw//2), (pathnode[1] * th) + (th//2))
             #if n_grid[pathnode[1]][pathnode[0]] == True:
             if pathnode in path_to_target.keys():
@@ -266,6 +284,8 @@ class RootObject(pygame.sprite.WeakSprite):
         t_grid = target.grid_position(mapdict)
         #return abs(s_grid[0] - t_grid[0]) + abs(s_grid[1] - t_grid[1])
         return coord_distance_tup(s_grid, t_grid)
+    
+    
 
 class PingObject(RootObject):
     def __init__(self, x, y):

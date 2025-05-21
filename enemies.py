@@ -19,7 +19,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         self.turnspeed = ENEMY_TURN_SPEED
         self.timer = 0
         self.current_movement = ValidMovements.WanderAround
-        self.destination = None
+        self.destination = []
         self.color = "red"
         self.sight_range = ENEMY_DETECTION_RANGE
         self.current_target = None
@@ -51,10 +51,10 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             
 
 
-    def update(self, dt, TargetGroup, BulletGroup, surface):
+    def update(self, dt, TargetGroup, BulletGroup, surface, mapdict):
 
         self.timer -= dt
-        self.Movement_Choice(dt)
+        self.Movement_Choice(dt, mapdict)
         if self.map_edge_check(surface) != True:
             print(f"object {self.name} is out of bounds at {self.position.xy}") #i gotta think on how this logic will work, might be messy
             self.kill()
@@ -63,7 +63,8 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
         if self.current_target != None:
             self.current_movement = ValidMovements.FollowEnemy
             self.sight_range = ENEMY_DETECTION_RANGE
-            self.destination = self.current_target
+            if self.destination == None or self.destination == []:
+                self.destination = self.find_a_path(mapdict, self.current_target)
         else:
             self.sight_range += 10
             self.current_movement = ValidMovements.WanderAround
@@ -99,12 +100,12 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
                     self.spawner.color = "green"
           
 
-    def Movement_Choice(self, dt):
+    def Movement_Choice(self, dt, mapdict):
         match self.current_movement:
             case ValidMovements.WanderAround:
                 self.Wander_Around(dt)
             case ValidMovements.FollowEnemy:
-                self.Move_Closer(dt)
+                self.Move_Closer(dt, mapdict)
 
     """ def Find_Target(self, group):
         
@@ -130,15 +131,43 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
                 self.sight_range += 10
                 self.current_movement = ValidMovements.WanderAround """
         
-        
-    def Move_Closer(self, dt):
+    def Move_Closer(self, dt, mapdict):
+        #this needs to be modified so the enemies bumrush the players with some avoidance
+        #but as it stands now it's just kinda slow in their case
+        if self.destination != [] and self.destination != None:
+            if self.next_node == None:
+                next_spot = self.destination.pop()
+                if isinstance(next_spot, tuple):
+                    nn_x = next_spot[0]
+                    nn_y = next_spot[1]
+                elif isinstance(next_spot, pygame.Vector2):
+                    nn_x = next_spot.x
+                    nn_y = next_spot.y
+                self.next_node = RootObject(nn_x, nn_y, 2)
+        if self.next_node != None:
+            degrees = self.find_angle(self.next_node)
+        #print(f"moving to destination, current rotation {self.rotation}, target angle {degrees}")
+            #if degrees < self.rotation:
+                #self.rotate(dt * -1)
+            #elif degrees > self.rotation:
+                #self.rotate(dt)
+            self.rotation = degrees
+            
+            if self.grid_oob(mapdict) == False:
+                g_pos = self.grid_position(mapdict)
+                print(f"ah shit we went out of bounds on grid square {g_pos}")
+            if self.rect.contains(self.next_node.rect) == False:
+                self.move(dt)
+            else:
+                self.next_node = None
+    '''def Move_Closer(self, dt):
         degrees = self.find_angle(self.destination)
         if self.rotation > degrees:
             self.rotate(dt*-1)
         elif self.rotation < degrees:
             self.rotate(dt)
         if self.collision(self.destination) == False:
-            self.move(dt)    
+            self.move(dt)    '''
 
     def Wander_Around(self, dt):
         if self.timer < 0:
