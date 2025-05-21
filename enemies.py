@@ -71,10 +71,10 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
             self.destination = None
         for bullet in BulletGroup:
             self.check_bullet(bullet, dt)
-        if self.destination and self.collision_rough(self.destination) == True and self.destination.can_damage == True:
-            self.destination.take_damage(self.damage_value)
+        if self.current_target and self.collision_rough(self.current_target) == True and self.current_target.can_damage == True:
+            self.current_target.take_damage(self.damage_value)
             #print(f"{self.name} tried to hit {self.destination.name}")
-            if self.destination.alive() == False:
+            if self.current_target.alive() == False:
                 self.destination = None
                 self.current_movement = ValidMovements.WanderAround
                 self.current_target = None
@@ -144,6 +144,8 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
                     nn_x = next_spot.x
                     nn_y = next_spot.y
                 self.next_node = RootObject(nn_x, nn_y, 2)
+        elif self.current_target != None and (self.destination == [] or self.destination == None):
+            self.next_node = self.current_target
         if self.next_node != None:
             degrees = self.find_angle(self.next_node)
         #print(f"moving to destination, current rotation {self.rotation}, target angle {degrees}")
@@ -158,7 +160,7 @@ class EnemyUnit(RootObject): #will have to branch off for extra enemy types
                 print(f"ah shit we went out of bounds on grid square {g_pos}")
             if self.rect.contains(self.next_node.rect) == False:
                 self.move(dt)
-            else:
+            elif self.current_target != self.next_node:
                 self.next_node = None
     '''def Move_Closer(self, dt):
         degrees = self.find_angle(self.destination)

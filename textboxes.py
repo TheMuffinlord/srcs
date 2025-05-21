@@ -3,13 +3,13 @@ import pygame, math, random
 from constants import *
 
 class TextBoxObject(pygame.sprite.Sprite):
-    def __init__(self, origin_x, origin_y, width, height, lines: list):
+    def __init__(self, origin_x, origin_y, width, height, size, lines: list):
         if hasattr(self, "containers"):
             super().__init__(self.containers)
         else:
             super().__init__()
         self.text_font = pygame.font.get_default_font() #overwrite in subclasses
-        self.text_size = 12 #overwrite in subclasses
+        self.text_size = size 
         self.text_object = pygame.font.Font(self.text_font, self.text_size)
         self.text_color = "white"
         self.x = origin_x
@@ -40,7 +40,7 @@ class TextBoxObject(pygame.sprite.Sprite):
 
 class DamageAlertBox(TextBoxObject):
     def __init__(self, o_sprite: pygame.sprite.Sprite, lines: list):
-        super().__init__(o_sprite.position.x, o_sprite.position.y - DAMAGE_ALERT_WIDTH, DAMAGE_ALERT_WIDTH, DAMAGE_ALERT_HEIGHT, lines)
+        super().__init__(o_sprite.position.x, o_sprite.position.y - DAMAGE_ALERT_WIDTH, DAMAGE_ALERT_WIDTH, DAMAGE_ALERT_HEIGHT, 24, lines)
         self.owner = o_sprite
         self.x = self.owner.position.x
         self.y = self.owner.position.y - DAMAGE_ALERT_HEIGHT
@@ -48,7 +48,7 @@ class DamageAlertBox(TextBoxObject):
         self.timer_start = 3
         self.timer = 0
         self.lifespan = DAMAGE_ALERT_LIFESPAN
-        self.text_size = 36
+        #self.text_size = 36
 
     def draw(self, screen):
         self.box = pygame.rect.Rect(self.x, self.y, self.width, self.height)

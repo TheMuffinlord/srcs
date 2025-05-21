@@ -262,9 +262,9 @@ class RootObject(pygame.sprite.WeakSprite):
                 #print(f"cost to node: {cost_to_target[pathnode]}")
                 pathnode = path_to_target[pathnode]
 
-        path_pings = []
+        '''path_pings = []
         for p in pathway:
-            path_pings.append(PingObject(p[0], p[1]))
+            path_pings.append(PingObject(p[0], p[1]))'''
         #print(f"pathfinding complete, here's the results:\n----------\n{pathway}\n----------\nfull grid:\n==========\n{path_to_target}")
         
         self.destination = pathway
