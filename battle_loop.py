@@ -94,7 +94,7 @@ class SelectionCursor(RootObject): #selection cursor. should move these to other
         
 # main battle loop
 
-def battle_mode(screen):
+def battle_mode(window, screen):
     #create the map, populate with units
 
     loop_updatable = pygame.sprite.Group()
@@ -284,5 +284,5 @@ def battle_mode(screen):
 
         drawable_rect = pygame.rect.Rect(offset_x, offset_y, SCREEN_WIDTH, SCREEN_HEIGHT)
         pygame.surface.Surface.blit(screen, playable_area, drawable_rect)
-        pygame.display.flip()
+        window.flip()
         dt = clock.tick(60)/1000      

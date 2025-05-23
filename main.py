@@ -9,7 +9,8 @@ def main():
     pygame.init()
     print(f"Screen width: {SCREEN_WIDTH}")
     print(f"Screen height: {SCREEN_HEIGHT}")
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    window = pygame.window.Window("shitty robot clone squad", size=(SCREEN_WIDTH, SCREEN_HEIGHT), resizable=False)
+    screen = window.get_surface()
 
     #eventually i'm going to need to pass some variables between the modes 
     #but for now this is certified good enough    
@@ -19,7 +20,7 @@ def main():
             if event.type == pygame.KEYDOWN:
                 Waiting_On_Space = False
 
-    battle_mode(screen)
+    battle_mode(window, screen)
 
 if __name__ == "__main__":
     main()

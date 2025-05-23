@@ -11,7 +11,7 @@ class ValidMovements(Enum): #starting to think these might be a mistake. maybe s
     StandStill = "standing still"
 
 
-class RootObject(pygame.sprite.WeakSprite): 
+class RootObject(pygame.sprite.Sprite): 
     #ok so rootobject is the root of all other in-game sprites
     #everything is circles at its core, this may change later
     #i've tried to put as many helpers in here as i can get away with
